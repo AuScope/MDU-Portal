@@ -2,18 +2,20 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.auscope.portal</groupId>
-    <artifactId>AuScope-Portal</artifactId>
+    <groupId>mdu.datadiscovery.portal</groupId>
+    <artifactId>portal</artifactId>
     <packaging>war</packaging>
-    <version>2.4.0</version>
-    <name>AuScope-Portal Maven Webapp</name>
+    <version>0.0.2</version>
+    <name>MDU-Portal Maven Webapp</name>
     <url>http://maven.apache.org</url>
     <scm>
-        <connection>scm:svn:https://svn.auscope.org/subversion/AuScopePortal/AuScope-Portal/trunk</connection>
-        <developerConnection>scm:svn:https://svn.auscope.org/subversion/AuScopePortal/AuScope-Portal/trunk</developerConnection>
+        <connection>scm:svn:https://cgsrv1.arrc.csiro.au/subversion/di4smb/trunk/</connection>
+        <developerConnection>scm:svn:https://cgsrv1.arrc.csiro.au/subversion/di4smb/trunk/</developerConnection>
     </scm>
     <build>
-        <finalName>AuScope-Portal</finalName>
+        <finalName>portal_v${project.version}_r${buildNumber}</finalName>
+        <filters>
+        </filters>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -107,6 +109,24 @@
                     </systemProperties>
                 </configuration>
             </plugin>
+			<plugin>
+			  <groupId>org.zeroturnaround</groupId>
+			  <artifactId>javarebel-maven-plugin</artifactId>
+			  <!--  <configuration>
+			  	<relativePath>../../</relativePath>
+			  	<rootPath>$${myproject.root}</rootPath>
+			  </configuration>-->
+			  <executions>
+				<execution>
+				  <id>generate-rebel-xml</id>
+				  <phase>process-resources</phase>
+				  <goals>
+
+					<goal>generate</goal>
+				  </goals>
+				</execution>
+			  </executions>
+			</plugin>
         </plugins>
     </build>
     
@@ -300,6 +320,20 @@
             <groupId>xom</groupId>
             <artifactId>xom</artifactId>
             <version>1.1d2</version>
+        </dependency>
+        <dependency>
+        	<groupId>org.springframework</groupId>
+        	<artifactId>spring-web</artifactId>
+        	<version>${spring.version}</version>
+        	<type>jar</type>
+        	<scope>compile</scope>
+        </dependency>
+        <dependency>
+        	<groupId>org.springframework.ldap</groupId>
+        	<artifactId>spring-ldap-core</artifactId>
+        	<version>1.3.0.RELEASE</version>
+        	<type>jar</type>
+        	<scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
