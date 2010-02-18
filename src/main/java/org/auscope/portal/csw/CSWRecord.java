@@ -13,7 +13,8 @@ import javax.xml.xpath.XPathExpressionException;
  */
 //TODO: refactor into data and service records
 public class CSWRecord {
-    private Node recordNode;
+	//removed this link as it was not used and contained a massive chunk of memory 
+    //private Node recordNode; 
     private String serviceName;
     private String serviceUrl;
     private String onlineResourceName;
@@ -26,37 +27,36 @@ public class CSWRecord {
 
 
     public CSWRecord(Node node) throws XPathExpressionException {
-        this.recordNode = node;
 
         XPath xPath = XPathFactory.newInstance().newXPath();
         xPath.setNamespaceContext(new CSWNamespaceContext());
 
         String serviceTitleExpression = "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString";
-        Node tempNode = (Node)xPath.evaluate(serviceTitleExpression, recordNode, XPathConstants.NODE);
+        Node tempNode = (Node)xPath.evaluate(serviceTitleExpression, node, XPathConstants.NODE);
         serviceName = tempNode != null ? tempNode.getTextContent() : "";
 
         String dataIdentificationAbstractExpression = "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString";
-        tempNode = (Node)xPath.evaluate(dataIdentificationAbstractExpression, recordNode, XPathConstants.NODE);
+        tempNode = (Node)xPath.evaluate(dataIdentificationAbstractExpression, node, XPathConstants.NODE);
         dataIdentificationAbstract = tempNode != null ? tempNode.getTextContent() : "";
 
         String serviceUrleExpression = "gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:linkage/gmd:URL";
-        tempNode = (Node)xPath.evaluate(serviceUrleExpression, recordNode, XPathConstants.NODE);
+        tempNode = (Node)xPath.evaluate(serviceUrleExpression, node, XPathConstants.NODE);
         serviceUrl = tempNode != null ? tempNode.getTextContent() : "";
 
         String onlineResourceNameExpression = "gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:name/gco:CharacterString";
-        tempNode = (Node)xPath.evaluate(onlineResourceNameExpression, recordNode, XPathConstants.NODE);
+        tempNode = (Node)xPath.evaluate(onlineResourceNameExpression, node, XPathConstants.NODE);
         onlineResourceName = tempNode != null ? tempNode.getTextContent() : "";
 
         String onlineResourceDescriptionExpression = "gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:description/gco:CharacterString";
-        tempNode = (Node)xPath.evaluate(onlineResourceDescriptionExpression, recordNode, XPathConstants.NODE);
+        tempNode = (Node)xPath.evaluate(onlineResourceDescriptionExpression, node, XPathConstants.NODE);
         onlineResourceDescription = tempNode != null ? tempNode.getTextContent() : "";
 
         String onlineResourceProtocolExpression = "gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:protocol/gco:CharacterString";
-        tempNode = (Node)xPath.evaluate(onlineResourceProtocolExpression, recordNode, XPathConstants.NODE);
+        tempNode = (Node)xPath.evaluate(onlineResourceProtocolExpression, node, XPathConstants.NODE);
         onlineResourceProtocol = tempNode != null ? tempNode.getTextContent() : "";
-
+        
         String contactOrganisationExpression = "gmd:contact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString";
-        tempNode = (Node)xPath.evaluate(contactOrganisationExpression, recordNode, XPathConstants.NODE);
+        tempNode = (Node)xPath.evaluate(contactOrganisationExpression, node, XPathConstants.NODE);
         contactOrganisation = tempNode != null ? tempNode.getTextContent() : "";
     }
 
