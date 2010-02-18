@@ -9,15 +9,34 @@ public class KnownFeatureTypeDefinition {
     private String featureTypeName;
     private String displayName;
     private String description;
-    private String proxyUrl;
+    private String proxyRecordFetchUrl;
     private String iconUrl;
+    private boolean ignored;
 
-    public KnownFeatureTypeDefinition(String featureTypeName, String displayName, String description, String proxyUrl, String iconUrl) {
+    public KnownFeatureTypeDefinition(String featureTypeName, boolean ignored) {
+    	this.featureTypeName = featureTypeName;
+    	this.ignored = ignored;
+    }
+    
+    public KnownFeatureTypeDefinition(String featureTypeName, String displayName, String description, String proxyRecordFetchUrl, String iconUrl) {
         this.featureTypeName = featureTypeName;
         this.displayName = displayName;
         this.description = description;
-        this.proxyUrl = proxyUrl;
+        this.proxyRecordFetchUrl = proxyRecordFetchUrl;
         this.iconUrl = iconUrl;
+        this.ignored = false;
+    }
+    
+    /**
+     * Ignored feature types are NOT displayed to the user. This allows specific feature types to be excluded for whatever reason
+     * @return
+     */
+    public boolean getIgnored() {
+    	return ignored;
+    }
+    
+    public void setIgnored(boolean ignored) {
+    	this.ignored = ignored;
     }
 
     public String getFeatureTypeName() {
@@ -32,11 +51,26 @@ public class KnownFeatureTypeDefinition {
         return description;
     }
 
-    public String getProxyUrl() {
-        return proxyUrl;
+    /**
+     * Get the URL that is used to actual fetch the records for a URL
+     * @return
+     */
+    public String getProxyRecordFetchUrl() {
+        return proxyRecordFetchUrl;
     }
-
+    
     public String getIconUrl() {
         return iconUrl;
+    }
+    
+    public int hashCode() {
+    	return featureTypeName.hashCode();
+    }
+    
+    public boolean equals(Object obj) {
+    	if (obj instanceof KnownFeatureTypeDefinition)
+    		return featureTypeName.equals(((KnownFeatureTypeDefinition) obj).featureTypeName);
+    	
+    	return super.equals(obj);	
     }
 }

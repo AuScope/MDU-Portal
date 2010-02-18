@@ -27,7 +27,7 @@ import java.io.StringWriter;
  * Time: 10:43:35 AM
  */
 public class TestCSWController {
-
+	
     /**
      * JMock context
      */
@@ -64,7 +64,6 @@ public class TestCSWController {
 
         context.checking(new Expectations() {{
             oneOf(propertyConfigurer).resolvePlaceholder(with(any(String.class)));will(returnValue(serviceUrl));
-            oneOf(cswService).setServiceUrl(serviceUrl);
             oneOf(cswService).updateRecordsInBackground();
         }});
 
@@ -82,6 +81,7 @@ public class TestCSWController {
         final Iterator mockIterator = context.mock(Iterator.class);
         final StringWriter actualJSONResponse = new StringWriter();
         final CSWRecord mockRecord = context.mock(CSWRecord.class);
+        
 
         context.checking(new Expectations() {{
             oneOf(cswService).updateRecordsInBackground();
@@ -89,6 +89,7 @@ public class TestCSWController {
             oneOf(mockIterator).hasNext();will(returnValue(true));
             oneOf(mockIterator).next();will(returnValue(def));
             oneOf(cswService).getWFSRecordsForTypename(def.getFeatureTypeName());will(returnValue(new CSWRecord[]{mockRecord}));
+            
 
             oneOf(mockRecord).getServiceUrl();
             oneOf(mockRecord).getContactOrganisation();
@@ -133,6 +134,7 @@ public class TestCSWController {
             oneOf(mockIterator).hasNext();will(returnValue(true));
             oneOf(mockIterator).next();will(returnValue(def));
             oneOf(cswService).getWFSRecordsForTypename(def.getFeatureTypeName());will(returnValue(new CSWRecord[]{}));
+            
 
             oneOf(mockIterator).hasNext();will(returnValue(false));
 
@@ -167,6 +169,7 @@ public class TestCSWController {
         context.checking(new Expectations() {{
             oneOf(cswService).updateRecordsInBackground();
             oneOf(cswService).getWMSRecords();will(returnValue(new CSWRecord[]{mockRecord}));
+            
 
             oneOf(mockRecord).getServiceName();
             oneOf(mockRecord).getDataIdentificationAbstract();
@@ -176,6 +179,7 @@ public class TestCSWController {
             //check that the correct response is getting output
             oneOf (mockHttpResponse).setContentType(with(any(String.class)));
             oneOf (mockHttpResponse).getWriter(); will(returnValue(new PrintWriter(actualJSONResponse)));
+            
         }});
         
         ModelAndView modelAndView = cswController.getWMSLayers();

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.auscope.portal.server.web.service.CSWService;
 import org.auscope.portal.csw.CSWRecord;
 import org.auscope.portal.server.web.view.JSONModelAndView;
@@ -34,16 +35,13 @@ public class CSWController {
     @Autowired
     public CSWController(CSWService cswService,
                          PortalPropertyPlaceholderConfigurer portalPropertyPlaceholderConfigurer,
-                         ArrayList knownTypes) {
+                         @Qualifier(value = "knownTypes")  ArrayList knownTypes) {
 
         this.cswService = cswService;
         this.portalPropertyPlaceholderConfigurer = portalPropertyPlaceholderConfigurer;
         this.knownTypes = knownTypes;
 
-        String cswServiceUrl =
-            portalPropertyPlaceholderConfigurer.resolvePlaceholder("HOST.cswservice.url");
-        logger.debug("cswServiceUrl: " + cswServiceUrl);
-        cswService.setServiceUrl(cswServiceUrl);
+
 
         try {
             cswService.updateRecordsInBackground();
@@ -101,7 +99,7 @@ public class CSWController {
             tableRow.add(knownType.getDescription() + " " + servicesDescription);
 
             //add the service URL - this is the spring controller for handling minocc
-            tableRow.add(knownType.getProxyUrl());
+            tableRow.add(knownType.getProxyRecordFetchUrl());
 
             //add the type: wfs or wms
             tableRow.add("wfs");
