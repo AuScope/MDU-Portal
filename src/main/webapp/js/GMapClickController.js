@@ -43,7 +43,7 @@ var gMapClickController = function(map, overlay, latlng, activeLayersStore) {
             if (record.get('serviceType') == 'wms') {
                 var TileUtl = new Tile(map,latlng);
 
-                var url = "/wmsMarkerPopup.do"
+                var url = "wmsMarkerPopup.do"
                 url += "?WMS_URL=" + record.get('serviceURLs');
                 url += "&lat=" + latlng.lat();
                 url += "&lng=" + latlng.lng();
@@ -53,7 +53,7 @@ var gMapClickController = function(map, overlay, latlng, activeLayersStore) {
                 url += '&BBOX=' + TileUtl.getTileCoordinates();
                 url += '&WIDTH=' + TileUtl.getTileWidth();
                 url += '&HEIGHT=' + TileUtl.getTileHeight();    			
-                //alert(url);
+
                 
                 map.getDragObject().setDraggableCursor("pointer");
                 GDownloadUrl(url, function(response, responseCode) {

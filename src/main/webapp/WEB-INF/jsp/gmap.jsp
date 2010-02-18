@@ -16,7 +16,7 @@
 
       <STYLE type="text/css">
          #nav-example-02 a {
-            background: url("/img/navigation.gif") -100px -38px no-repeat;
+            background: url("img/navigation.gif") -100px -38px no-repeat;
          }
          /* for IE */
          v\:* {
@@ -38,6 +38,7 @@
       <script type="text/javascript">
          var VOCAB_SERVICE_URL = "${vocabServiceUrl}"; 
          var NVCL_WEB_SERVICE_IP = "${nvclWebServiceIP}";
+         var WEB_CONTEXT = '<%= request.getContextPath() %>';
       </script>     
       
       <jsp:include page="/jsimports.htm"/>
