@@ -18,6 +18,8 @@ import org.apache.commons.logging.LogFactory;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -73,6 +75,42 @@ public class GSMLController {
         }.makeMethod(), serviceCaller.getHttpClient());
 
          return makeModelAndViewKML(gmlToKml.convert(gmlResponse, request), gmlResponse);
+    }
+    
+    /**
+     * Given a service Url, a feature type and a specific feature ID, this function will fetch the specific feature and 
+     * then convert it into KML to be displayed, assuming that the response will be complex feature GeoSciML
+     * @param serviceUrl
+     * @param featureType
+     * @param featureId
+     * @param request
+     * @return
+     */
+    @RequestMapping("/requestFeature.do")
+    public ModelAndView requestFeature(@RequestParam("serviceUrl") final String serviceUrl,
+            						   @RequestParam("typeName") final String featureType,
+            						   @RequestParam("featureId") final String featureId,
+            						   HttpServletRequest request) throws Exception {
+    	String gmlResponse = serviceCaller.getMethodResponseAsString(new ICSWMethodMaker() {
+            public HttpMethodBase makeMethod() {
+                GetMethod method = new GetMethod(serviceUrl);
+
+                ArrayList<NameValuePair> valuePairs = new ArrayList<NameValuePair>();
+                
+                //set all of the parameters
+                valuePairs.add(new NameValuePair("request", "GetFeature"));
+                valuePairs.add(new NameValuePair("typeName", featureType));
+                valuePairs.add(new NameValuePair("featureId", featureId));
+                
+
+                //attach them to the method
+                method.setQueryString((NameValuePair[]) valuePairs.toArray(new NameValuePair[valuePairs.size()]));
+
+                return method;
+            }
+        }.makeMethod(), serviceCaller.getHttpClient());
+
+        return makeModelAndViewKML(gmlToKml.convert(gmlResponse, request), gmlResponse);
     }
 
     @RequestMapping("/xsltRestProxy.do")

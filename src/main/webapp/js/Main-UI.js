@@ -243,7 +243,7 @@ Ext.onReady(function() {
             }
         } else {
             if (record.get('serviceType') == 'wfs') {
-                if (record.tileOverlay instanceof MarkerManager) record.tileOverlay.clearMarkers();
+                if (record.tileOverlay instanceof OverlayManager) record.tileOverlay.clearOverlays();
             } else if (record.get('serviceType') == 'wms') {
                 //remove from the map
                 map.removeOverlay(record.tileOverlay);
@@ -267,7 +267,7 @@ Ext.onReady(function() {
             return;
         }
 
-        if (selectedRecord.tileOverlay instanceof MarkerManager) selectedRecord.tileOverlay.clearMarkers();
+        if (selectedRecord.tileOverlay instanceof OverlayManager) selectedRecord.tileOverlay.clearOverlays();
 
         //a response status holder
         selectedRecord.responseTooltip = new ResponseTooltip();
@@ -279,8 +279,8 @@ Ext.onReady(function() {
         var finishedLoadingCounter = serviceURLs.length;
         // var markerOverlay = new MarkerOverlay();
 
-        var markerManager = new MarkerManager(map);
-        selectedRecord.tileOverlay = markerManager;
+        var overlayManager = new OverlayManager(map);
+        selectedRecord.tileOverlay = overlayManager;
 
         //set the status as loading for this record
         selectedRecord.set('loadingStatus', '<img src="js/external/extjs/resources/images/default/grid/loading.gif">');
@@ -288,7 +288,7 @@ Ext.onReady(function() {
         var filterParameters = filterPanel.getLayout().activeItem == filterPanel.getComponent(0) ? "&typeName=" + selectedRecord.get('typeName') : filterPanel.getLayout().activeItem.getForm().getValues(true);
 
         for (var i = 0; i < serviceURLs.length; i++) {
-            handleQuery(serviceURLs[i], selectedRecord, proxyURL, iconUrl, markerManager, filterParameters, function() {
+            handleQuery(serviceURLs[i], selectedRecord, proxyURL, iconUrl, overlayManager, filterParameters, function() {
                 //decrement the counter
                 finishedLoadingCounter--;
 
@@ -300,7 +300,7 @@ Ext.onReady(function() {
         }
     };
 
-    var handleQuery = function(serviceUrl, selectedRecord, proxyURL, iconUrl, markerManager, filterParameters, finishedLoadingHandler) {
+    var handleQuery = function(serviceUrl, selectedRecord, proxyURL, iconUrl, overlayManager, filterParameters, finishedLoadingHandler) {
         selectedRecord.responseTooltip.addResponse(serviceUrl, "Loading...");
         GDownloadUrl(proxyURL + '?' + filterParameters + '&serviceUrl=' + serviceUrl, function(data, responseCode) {
             if (responseCode == 200) {
@@ -308,18 +308,30 @@ Ext.onReady(function() {
                 if (jsonResponse.success) {
                     var icon = new GIcon(G_DEFAULT_ICON, iconUrl);
                     icon.iconSize = new GSize(32, 32);
-                    var markers = new KMLParser(jsonResponse.data.kml).makeMarkers(icon, function(marker) {
+                    
+                    //Parse our KML
+                    var parser = new KMLParser(jsonResponse.data.kml);
+                    parser.makeMarkers(icon, function(marker) {
                         marker.typeName = selectedRecord.get('typeName');
                         marker.wfsUrl = serviceUrl;
+                        marker.parentRecord = selectedRecord;
                     });
-                    markerManager.addMarkers(markers, 0);
-                    markerManager.refresh();
+                    
+                    var markers = parser.markers;
+                    var overlays = parser.overlays;
+                    
+                    //Add our single points and polygons
+                    overlayManager.markerManager.addMarkers(markers, 0);
+                    for(var i = 0; i < overlays.length; i++) {
+                    	overlayManager.addOverlay(overlays[i]);
+                    }
+                    overlayManager.markerManager.refresh();
 
                     //store the gml for later download needs
                     selectedRecord.gml = jsonResponse.data.gml;
 
                     //store the status
-                    selectedRecord.responseTooltip.addResponse(serviceUrl, markers.length + " records retrieved.");
+                    selectedRecord.responseTooltip.addResponse(serviceUrl, (markers.length + polygons.length) + " records retrieved.");
                 } else {
                     //store the status
                     selectedRecord.responseTooltip.addResponse(serviceUrl, jsonResponse.msg);
@@ -441,7 +453,9 @@ Ext.onReady(function() {
                     var record = activeLayersPanel.getSelectionModel().getSelected();
 
                     if (record.get('serviceType') == 'wfs') {
-                        if (record.tileOverlay instanceof MarkerManager) record.tileOverlay.clearMarkers();
+                        if (record.tileOverlay instanceof OverlayManager) { 
+                        	record.tileOverlay.clearOverlays;
+                        }
                     } else if (record.get('serviceType') == 'wms') {
                         //remove from the map
                         map.removeOverlay(record.tileOverlay);

@@ -32,6 +32,13 @@ public class GmlToKml {
    @Qualifier(value = "propertyConfigurer")
    private PortalPropertyPlaceholderConfigurer hostConfigurer;
    
+   /**
+    * Not intended for runtime setting, this is primarily used for testing
+    * @param hostConfigurer
+    */
+   public void setHostConfigurer(PortalPropertyPlaceholderConfigurer hostConfigurer) {
+	   this.hostConfigurer = hostConfigurer;
+   }
    
    /**
     * Utility method to transform xml file. It is kml.xml specific as it sets
