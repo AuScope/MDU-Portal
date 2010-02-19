@@ -28,8 +28,33 @@ Ext.onReady(function() {
         ]),
         sortInfo: {field:'title', direction:'ASC'}
     });
+    
+    var genericFeaturesStore = new Ext.data.Store({
+        proxy: new Ext.data.HttpProxy(new Ext.data.Connection({url: 'getGenericFeatures.do', timeout:180000})),
+        reader: new Ext.data.ArrayReader({}, [
+            {   name: 'title'           },
+            {   name: 'description'     },
+            {   name: 'proxyURL'        },
+            {   name: 'serviceType'     },  
+            {   name: 'id'              },
+            {   name: 'typeName'        },
+            {   name: 'serviceURLs'     },
+            {   name: 'layerVisible'    },
+            {   name: 'loadingStatus'   },
+            {   name: 'iconImgSrc'      },
+            {   name: 'iconUrl'         },
+            {   name: 'dataSourceImage' },
+        ]),
+        sortInfo: {field:'title', direction:'ASC'}
+    });
 
     var complexFeaturesRowExpander = new Ext.grid.RowExpander({
+        tpl : new Ext.Template(
+                '<p>{description} </p><br>'
+                )
+    });
+    
+    var genericFeaturesRowExpander = new Ext.grid.RowExpander({
         tpl : new Ext.Template(
                 '<p>{description} </p><br>'
                 )
@@ -73,13 +98,58 @@ Ext.onReady(function() {
         plugins: [complexFeaturesRowExpander],
         viewConfig: {scrollOffset: 0},
 
-        title: 'Feature Layers',
+        title: 'Featured Layers',
         region:'north',
         split: true,
         height: 200,
         autoScroll: true
     });
+    
+    var genericFeaturesPanel = new Ext.grid.GridPanel({
+        store: genericFeaturesStore,
+        columns: [
+            genericFeaturesRowExpander,
+            {
+                id:'title',
+                header: "Title",
+                width: 160,
+                sortable: true,
+                dataIndex: 'title'
+            }
+        ],
+        bbar: [
+            {
+                text:'Add Layer to Map',
+                tooltip:'Add Layer to Map',
+                iconCls:'add',
+                pressed: true,
+                handler: function() {
+                    var recordToAdd = genericFeaturesPanel.getSelectionModel().getSelected();
 
+                    //add to active layers
+                    activeLayersStore.add(recordToAdd);
+
+                    //invoke this layer as being checked
+                    activeLayerCheckHandler(genericFeaturesPanel.getSelectionModel().getSelected(), true);
+
+                    //set this record to selected
+                    activeLayersPanel.getSelectionModel().selectRecords([recordToAdd], false);
+                }
+            }
+        ],
+
+        stripeRows: true,
+        autoExpandColumn: 'title',
+        plugins: [genericFeaturesRowExpander],
+        viewConfig: {scrollOffset: 0},
+
+        title: 'Generic Layers',
+        region:'north',
+        split: true,
+        height: 200,
+        autoScroll: true
+    });
+    
     //----------- WMS Layers Panel Configurations
 
     var wmsLayersStore = new Ext.data.Store({
@@ -327,9 +397,6 @@ Ext.onReady(function() {
                     }
                     overlayManager.markerManager.refresh();
 
-                    //store the gml for later download needs
-                    selectedRecord.gml = jsonResponse.data.gml;
-
                     //store the status
                     selectedRecord.responseTooltip.addResponse(serviceUrl, (markers.length + polygons.length) + " records retrieved.");
                 } else {
@@ -454,7 +521,7 @@ Ext.onReady(function() {
 
                     if (record.get('serviceType') == 'wfs') {
                         if (record.tileOverlay instanceof OverlayManager) { 
-                        	record.tileOverlay.clearOverlays;
+                        	record.tileOverlay.clearOverlays();
                         }
                     } else if (record.get('serviceType') == 'wms') {
                         //remove from the map
@@ -697,6 +764,7 @@ Ext.onReady(function() {
         autoScroll: true,
         items:[
             complexFeaturesPanel,
+            genericFeaturesPanel,
             wmsLayersPanel
         ]
     });
@@ -819,6 +887,7 @@ Ext.onReady(function() {
     //new Ext.LoadMask(wmsLayersPanel.el, {msg: 'Please Wait...', store: wmsLayersStore});
 
     complexFeaturesStore.load();
+    genericFeaturesStore.load();
     wmsLayersStore.load();
 
 });
