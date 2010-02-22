@@ -62,10 +62,19 @@ public class PortalPropertyPlaceholderConfigurer extends PropertyPlaceholderConf
    public String resolvePlaceholder(String placeholder, Properties props) {
 
       try {
+      
          if (placeholder.startsWith("HOST.")) {
-            log.debug("Host: " + InetAddress.getLocalHost().getHostName()
+            String hostnameFromSystem = InetAddress.getLocalHost().getHostName();
+            
+            log.debug("Host: " + hostnameFromSystem
                                + " for property " + placeholder);
-            String hostname = placeholder.replaceFirst("HOST",InetAddress.getLocalHost().getHostName());
+
+            // Get the first part before the dot
+            if (hostnameFromSystem.contains(".")) {
+               hostnameFromSystem = hostnameFromSystem.split("\\.")[0];
+            }
+
+            String hostname = placeholder.replaceFirst("HOST",hostnameFromSystem);
             String prop = props.getProperty(hostname);
             
             if (prop == null) log.warn("Please define property: " + hostname);
