@@ -7,6 +7,7 @@ var theglobalexml;
 Ext.onReady(function() {
     var map;
     var formFactory = new FormFactory();
+    var searchBarThreshold = 6; //how many records do we need to have before we show a search bar
 
     //-----------Complex Features Panel Configurations
 
@@ -92,6 +93,15 @@ Ext.onReady(function() {
                 }
             }
         ],
+        tbar: [
+               'Search: ', ' ',
+               new Ext.ux.form.ClientSearchField({
+                   store: complexFeaturesStore,
+                   width:200,
+                   id:'search-complex',
+                   fieldName:'title'
+               })
+           ],
 
         stripeRows: true,
         autoExpandColumn: 'title',
@@ -137,6 +147,15 @@ Ext.onReady(function() {
                 }
             }
         ],
+        tbar: [
+               'Search: ', ' ',
+               new Ext.ux.form.ClientSearchField({
+                   store: genericFeaturesStore,
+                   width:200,
+                   id:'search-generic-panel',
+                   fieldName:'title'
+               })
+           ],
 
         stripeRows: true,
         autoExpandColumn: 'title',
@@ -207,6 +226,15 @@ Ext.onReady(function() {
                 }
             }
         ],
+        tbar: [
+               'Search: ', ' ',
+               new Ext.ux.form.ClientSearchField({
+              	 store: wmsLayersStore,
+                   width:200,
+                   id:'search-wms',
+                   fieldName:'title'
+                   })
+               ],
 
         stripeRows: true,
         autoExpandColumn: 'title',
@@ -886,8 +914,20 @@ Ext.onReady(function() {
     //new Ext.LoadMask(complexFeaturesPanel.el, {msg: 'Please Wait...', store: complexFeaturesStore});
     //new Ext.LoadMask(wmsLayersPanel.el, {msg: 'Please Wait...', store: wmsLayersStore});
 
-    complexFeaturesStore.load();
-    genericFeaturesStore.load();
-    wmsLayersStore.load();
+  //This handler is for hiding the search bars upon record load 
+    var storeLoadFinishHandler = function (store, records, options) {
+    	if (records.length < searchBarThreshold) {
+    		options.toolbar.hide();
+    		options.parentPanel.doLayout(false,true);
+    	}
+    };
+    
+    complexFeaturesStore.on('load',storeLoadFinishHandler);
+    genericFeaturesStore.on('load',storeLoadFinishHandler);
+    wmsLayersStore.on('load',storeLoadFinishHandler);
+    
+    complexFeaturesStore.load({toolbar:complexFeaturesPanel.getTopToolbar(), parentPanel:complexFeaturesPanel});
+    genericFeaturesStore.load({toolbar:genericFeaturesPanel.getTopToolbar(), parentPanel:genericFeaturesPanel});
+    wmsLayersStore.load({toolbar:wmsLayersPanel.getTopToolbar(), parentPanel:wmsLayersPanel});
 
 });
