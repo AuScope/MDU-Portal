@@ -61,6 +61,12 @@
 	
 	<bean id="cswServiceItemMDU" class="org.auscope.portal.server.web.service.CSWServiceItem">	
 		<constructor-arg index="0" value="http://mdu-data-2.arrc.csiro.au/geonetwork/srv/en/csw"/>
+		<constructor-arg index="1">
+       		<list>
+       			<value>ROLE_ADMINISTRATOR</value>
+       			<value>ROLE_USER</value>
+       		</list>
+       	</constructor-arg>
 	</bean>
 
    <bean id="knownTypeMine" class="org.auscope.portal.server.web.KnownFeatureTypeDefinition">

@@ -86,7 +86,7 @@ public class TestCSWController {
             oneOf(knownTypes).iterator();will(returnValue(mockIterator));
             oneOf(mockIterator).hasNext();will(returnValue(true));
             oneOf(mockIterator).next();will(returnValue(def));
-            oneOf(cswService).getWFSRecords();will(returnValue(new CSWRecord[]{mockRecord}));
+            oneOf(cswService).getWFSRecords(mockHttpRequest);will(returnValue(new CSWRecord[]{mockRecord}));
             
             allowing(mockRecord).getOnlineResourceName();will(returnValue("0"));
             allowing(mockRecord).getDataIdentificationAbstract();will(returnValue("1"));
@@ -133,7 +133,7 @@ public class TestCSWController {
             oneOf(knownTypes).iterator();will(returnValue(mockIterator));
             oneOf(mockIterator).hasNext();will(returnValue(true));
             oneOf(mockIterator).next();will(returnValue(def));
-            oneOf(cswService).getWFSRecords();will(returnValue(new CSWRecord[]{mockRecord}));
+            oneOf(cswService).getWFSRecords(mockHttpRequest);will(returnValue(new CSWRecord[]{mockRecord}));
             
             allowing(mockRecord).getOnlineResourceName();will(returnValue("aGenericType"));
             allowing(mockRecord).getDataIdentificationAbstract();will(returnValue("1"));
@@ -155,7 +155,7 @@ public class TestCSWController {
         //check that our JSON response has been nicely populated
         //calling the renderer will write the JSON to our mocks
         modelAndView.getView().render(modelAndView.getModel(), mockHttpRequest, mockHttpResponse);
-        
+
         //check that the actual is the expected
         if(expectedJSONResponse.equals(actualJSONResponse.getBuffer().toString()))
             Assert.assertTrue(true);
@@ -178,7 +178,7 @@ public class TestCSWController {
             oneOf(knownTypes).iterator();will(returnValue(mockIterator));
             oneOf(mockIterator).hasNext();will(returnValue(true));
             oneOf(mockIterator).next();will(returnValue(def));
-            oneOf(cswService).getWFSRecordsForTypename(def.getFeatureTypeName());will(returnValue(new CSWRecord[]{mockRecord}));
+            oneOf(cswService).getWFSRecordsForTypename(def.getFeatureTypeName(), mockHttpRequest);will(returnValue(new CSWRecord[]{mockRecord}));
             
 
             oneOf(mockRecord).getServiceUrl();
@@ -220,7 +220,7 @@ public class TestCSWController {
             oneOf(knownTypes).iterator();will(returnValue(mockIterator));
             oneOf(mockIterator).hasNext();will(returnValue(true));
             oneOf(mockIterator).next();will(returnValue(def));
-            oneOf(cswService).getWFSRecordsForTypename(def.getFeatureTypeName());will(returnValue(new CSWRecord[]{mockRecord}));
+            oneOf(cswService).getWFSRecordsForTypename(def.getFeatureTypeName(), mockHttpRequest);will(returnValue(new CSWRecord[]{mockRecord}));
             
 
             oneOf(mockRecord).getServiceUrl();
@@ -238,8 +238,7 @@ public class TestCSWController {
         //check that our JSON response has been nicely populated
         //calling the renderer will write the JSON to our mocks
         modelAndView.getView().render(modelAndView.getModel(), mockHttpRequest, mockHttpResponse);
-        System.out.println(expectedJSONResponse);//bacon
-        System.out.println(actualJSONResponse);//bacon
+
         //check that the actual is the expected
         if(expectedJSONResponse.equals(actualJSONResponse.getBuffer().toString()))
             Assert.assertTrue(true);
@@ -264,7 +263,7 @@ public class TestCSWController {
             oneOf(knownTypes).iterator();will(returnValue(mockIterator));
             oneOf(mockIterator).hasNext();will(returnValue(true));
             oneOf(mockIterator).next();will(returnValue(def));
-            oneOf(cswService).getWFSRecordsForTypename(def.getFeatureTypeName());will(returnValue(new CSWRecord[]{}));
+            oneOf(cswService).getWFSRecordsForTypename(def.getFeatureTypeName(), mockHttpRequest);will(returnValue(new CSWRecord[]{}));
             
 
             oneOf(mockIterator).hasNext();will(returnValue(false));
@@ -303,7 +302,7 @@ public class TestCSWController {
         context.checking(new Expectations() {{
         	oneOf(propertyConfigurer).resolvePlaceholder(with(any(String.class)));will(returnValue("somejunk"));
             oneOf(cswService).updateRecordsInBackground();
-            oneOf(cswService).getWMSRecords();will(returnValue(new CSWRecord[]{mockRecord}));
+            oneOf(cswService).getWMSRecords(mockHttpRequest);will(returnValue(new CSWRecord[]{mockRecord}));
             
 
             oneOf(mockRecord).getServiceName();

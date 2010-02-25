@@ -144,8 +144,8 @@ public class CSWService {
      * @return
      * @throws Exception
      */
-    public CSWRecord[] getAllRecords() throws Exception {
-    	return getFilteredRecords(null,null, true);
+    public CSWRecord[] getAllRecords(HttpServletRequest request) throws Exception {
+    	return getFilteredRecords(null,null, true, request);
     }
     
     /**
@@ -153,8 +153,8 @@ public class CSWService {
      * @return
      * @throws Exception
      */
-    public CSWRecord[] getWMSRecords() throws Exception {
-    	return getFilteredRecords("WMS",null, false);
+    public CSWRecord[] getWMSRecords(HttpServletRequest request) throws Exception {
+    	return getFilteredRecords("WMS",null, false, request);
     }
 
     /**
@@ -162,8 +162,8 @@ public class CSWService {
      * @return
      * @throws Exception
      */
-    public CSWRecord[] getWFSRecords() throws Exception {
-    	return getFilteredRecords("WFS",null, false);
+    public CSWRecord[] getWFSRecords(HttpServletRequest request) throws Exception {
+    	return getFilteredRecords("WFS",null, false, request);
     }
     
     /**
@@ -171,8 +171,8 @@ public class CSWService {
      * @return
      * @throws Exception
      */
-    public CSWRecord[] getWFSRecordsForTypename(String featureTypeName) throws Exception {
-    	return getFilteredRecords("WFS",featureTypeName, false);
+    public CSWRecord[] getWFSRecordsForTypename(String featureTypeName, HttpServletRequest request) throws Exception {
+    	return getFilteredRecords("WFS",featureTypeName, false, request);
     } 
 
     /**
@@ -184,19 +184,24 @@ public class CSWService {
      * @return
      * @throws Exception
      */
-    private synchronized CSWRecord[] getFilteredRecords(String dataRecordType, String featureTypeName, boolean includeEmptyServiceUrl) throws Exception {
+    private synchronized CSWRecord[] getFilteredRecords(String dataRecordType, String featureTypeName, boolean includeEmptyServiceUrl, HttpServletRequest request) throws Exception {
         ArrayList<CSWRecord> records = new ArrayList<CSWRecord>();
 
         //Iterate EVERY record for EVERY service url
-        for (int i = 0; i < cache.length; i++) {
-        	for(CSWRecord rec : cache[i].getCache()) {
-        		if(rec.getOnlineResourceProtocol() != null) {
-        			if ((dataRecordType == null || rec.getOnlineResourceProtocol().contains(dataRecordType)) && 
-        					(includeEmptyServiceUrl || !rec.getServiceUrl().equals("")) && 
+        for (int i = 0; i < cache.length; i++)
+        {
+        	//Note - security here is just a placeholder for the time being
+        	//		 We only iterate through "authorized" sets if the requesting controller has requested it
+        	if (cache[i].getServiceItem().isUserAuthorized(request)) {
+	        	for(CSWRecord rec : cache[i].getCache()) {
+	                if(rec.getOnlineResourceProtocol() != null) {
+	                	if ((dataRecordType == null || rec.getOnlineResourceProtocol().contains(dataRecordType)) && 
+	                		(includeEmptyServiceUrl || !rec.getServiceUrl().equals("")) && 
 	                        (featureTypeName == null || featureTypeName.equals(rec.getOnlineResourceName()))) {
 	                		records.add(rec);
-        			}
-        		}
+	                    }
+	                }
+	            }
         	}
         }
 

@@ -69,7 +69,7 @@ public class CSWController {
      * @param record
      * @return
      */
-private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record, int recordIndex) {
+    private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record, int recordIndex) {
     	
     	String iconUrl = "";
     	if (iconUrls.size() > 0) {
@@ -103,6 +103,7 @@ private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record
     	if (knownType.getIgnored()) 
     		return null;
     	
+    	
     	JSONArray tableRow = new JSONArray();
 
         //add the name of the layer/feature type
@@ -131,8 +132,11 @@ private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record
         //add the service URL - this is the spring controller for handling minocc
         tableRow.add(knownType.getProxyRecordFetchUrl());
         
+        
+        //add the url for querying record count
         //add the url for querying record count
         tableRow.add((knownType.getProxyRecordCountUrl() == null) ? "" : knownType.getProxyRecordCountUrl());
+        //tableRow.add((knownType.getProxyRecordCountUrl() == null) ? "" : knownType.getProxyRecordCountUrl());
 
         //add the type: wfs or wms
         tableRow.add("wfs");
@@ -163,8 +167,8 @@ private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record
      * Returns a JSON response with a data structure like so
      *
      * [
-     * [title, description, proxyURL, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage],
-     * [title, description, proxyURL, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage]
+     * [title, description, proxyRecordFetchURL, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage],
+     * [title, description, proxyRecordFetchURL, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage]
      * ]
      *
      * @return
@@ -180,7 +184,7 @@ private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record
 
         for(Object known : knownTypes) {
             KnownFeatureTypeDefinition knownType = (KnownFeatureTypeDefinition)known;
-            CSWRecord[] records = cswService.getWFSRecordsForTypename(knownType.getFeatureTypeName());
+            CSWRecord[] records = cswService.getWFSRecordsForTypename(knownType.getFeatureTypeName(), request);
             
             JSONArray tableRow = generateComplexJSONResponse(knownType, records);
             if (tableRow == null)
@@ -199,8 +203,8 @@ private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record
      * Returns a JSON response with a data structure like so
      *
      * [
-     * [title, description, proxyURL, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage],
-     * [title, description, proxyURL, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage]
+     * [title, description, proxyRecordFetch, proxyRecordCount, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage],
+     * [title, description, proxyRecordFetch, proxyRecordCount, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage]
      * ]
      *
      * @return
@@ -219,7 +223,7 @@ private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record
         Map knownTypeMap = new HashMap();
         
         //Iterate our record list to build up our hashtable of resource types
-        CSWRecord[] records = cswService.getWFSRecords();
+        CSWRecord[] records = cswService.getWFSRecords(request);
         int index = 0;
         for (CSWRecord record : records) {
         	
@@ -293,7 +297,7 @@ private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record
         //the main holder for the items
         JSONArray dataItems = new JSONArray();
 
-        CSWRecord[] records = cswService.getWMSRecords();
+        CSWRecord[] records = cswService.getWMSRecords(request);
 
         for(CSWRecord record : records) {
         	
