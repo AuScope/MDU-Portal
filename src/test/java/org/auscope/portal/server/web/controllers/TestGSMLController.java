@@ -7,6 +7,7 @@ import org.jmock.Mockery;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.auscope.portal.server.web.service.HttpServiceCaller;
+import org.auscope.portal.server.web.view.JSONView;
 import org.auscope.portal.server.util.GmlToKml;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.HttpClient;
@@ -75,8 +76,8 @@ public class TestGSMLController {
         ModelAndView modelAndView = gsmlController.requestAllFeatures("fake", "fake", null);
 
         //check that the kml blob has been put ont he model
-        modelAndView.getModel().get("data").equals(kmlBlob);
-        modelAndView.getModel().get("success").equals(true);
+        Assert.assertEquals(kmlBlob, ((Map)modelAndView.getModel().get("data")).get("kml"));
+        Assert.assertTrue(modelAndView.getModel().get("success").equals(true));
     }
     
     @Test
@@ -97,6 +98,25 @@ public class TestGSMLController {
         Assert.assertEquals(kmlBlob, ((Map)modelAndView.getModel().get("data")).get("kml"));
         Assert.assertTrue(modelAndView.getModel().get("success").equals(true));
     }
+    
+    @Test
+    public void testGetFeatureCount() throws Exception {
+    	final String docString = org.auscope.portal.Util.loadXML("src/test/resources/GetWFSFeatureCount.xml");
+        
+
+        context.checking(new Expectations() {{
+            oneOf(httpServiceCaller).getHttpClient();
+            oneOf(httpServiceCaller).getMethodResponseAsString(with(any(HttpMethodBase.class)), with(any(HttpClient.class)));will(returnValue(docString));
+        }});
+
+        ModelAndView modelAndView = gsmlController.requestFeatureCount("foo", "bar", null);
+
+        //check that we returned the correct value
+        JSONView view = (JSONView)modelAndView.getView();
+        Assert.assertEquals("161", view.getJSONArray().get(0));
+    }
+    
+    
 
     /**
      * Test that the gmltokml converter is called and the response put on the servlet response

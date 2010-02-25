@@ -61,13 +61,6 @@
 	
 	<bean id="cswServiceItemMDU" class="org.auscope.portal.server.web.service.CSWServiceItem">	
 		<constructor-arg index="0" value="http://mdu-data-2.arrc.csiro.au/geonetwork/srv/en/csw"/>
-       	<!-- <constructor-arg index="1">
-       		<list>
-       			<value>ROLE_ADMINISTRATOR</value>
-       			<value>ROLE_USER</value>
-       		</list>
-       	</constructor-arg>
-       	 -->
 	</bean>
 
    <bean id="knownTypeMine" class="org.auscope.portal.server.web.KnownFeatureTypeDefinition">
@@ -75,7 +68,8 @@
        <constructor-arg index="1" value="Earth Resource Mine"/>
        <constructor-arg index="2" value=""/>
        <constructor-arg index="3" value="doMineFilter.do"/>
-       <constructor-arg index="4" value="http://maps.google.com/mapfiles/kml/paddle/pink-blank.png"/>
+       <constructor-arg index="4" value=""/>
+       <constructor-arg index="5" value="http://maps.google.com/mapfiles/kml/paddle/pink-blank.png"/>
    </bean>
 
     <bean id="knownTypeMineralOccurrence" class="org.auscope.portal.server.web.KnownFeatureTypeDefinition">
@@ -83,7 +77,8 @@
        <constructor-arg index="1" value="Earth Resource Mineral Occurrence"/>
        <constructor-arg index="2" value=""/>
        <constructor-arg index="3" value="doMineralOccurrenceFilter.do"/>
-       <constructor-arg index="4" value="http://maps.google.com/mapfiles/kml/paddle/purple-blank.png"/>
+       <constructor-arg index="4" value=""/>
+       <constructor-arg index="5" value="http://maps.google.com/mapfiles/kml/paddle/purple-blank.png"/>
    </bean>
 
     <bean id="knownTypeMiningActivity" class="org.auscope.portal.server.web.KnownFeatureTypeDefinition">
@@ -91,7 +86,8 @@
        <constructor-arg index="1" value="Earth Resource Mining Activity"/>
        <constructor-arg index="2" value=""/>
        <constructor-arg index="3" value="doMiningActivityFilter.do"/>
-       <constructor-arg index="4" value="http://maps.google.com/mapfiles/kml/paddle/orange-blank.png"/>
+       <constructor-arg index="4" value=""/>
+       <constructor-arg index="5" value="http://maps.google.com/mapfiles/kml/paddle/orange-blank.png"/>
    </bean>
 
     <bean id="knownTypeBorehole" class="org.auscope.portal.server.web.KnownFeatureTypeDefinition">
@@ -99,7 +95,8 @@
        <constructor-arg index="1" value="National Virtual Core Library"/>
        <constructor-arg index="2" value=""/>
        <constructor-arg index="3" value="getAllFeatures.do"/>
-       <constructor-arg index="4" value="http://maps.google.com/mapfiles/kml/paddle/blu-blank.png"/>
+       <constructor-arg index="4" value="getFeatureCount.do"/>
+       <constructor-arg index="5" value="http://maps.google.com/mapfiles/kml/paddle/blu-blank.png"/>
    </bean>
 
     <bean id="knownTypeGeodesy" class="org.auscope.portal.server.web.KnownFeatureTypeDefinition">
@@ -107,6 +104,7 @@
        <constructor-arg index="1" value="Geodesy"/>
        <constructor-arg index="2" value=""/>
        <constructor-arg index="3" value="getAllFeatures.do"/>
-       <constructor-arg index="4" value="http://maps.google.com/mapfiles/kml/paddle/wht-blank.png"/>
+       <constructor-arg index="4" value="getFeatureCount.do"/>
+       <constructor-arg index="5" value="http://maps.google.com/mapfiles/kml/paddle/wht-blank.png"/>
    </bean>
 </beans>

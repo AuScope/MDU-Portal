@@ -74,7 +74,7 @@ public class TestCSWController {
      */
     @Test
     public void testGetGenericFeaturesNoResults() throws Exception {
-        final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4");
+        final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4", "5");
         final String expectedJSONResponse = "[]";
         final Iterator mockIterator = context.mock(Iterator.class);
         final StringWriter actualJSONResponse = new StringWriter();
@@ -121,8 +121,8 @@ public class TestCSWController {
      */
     @Test
     public void testGetGenericFeatures() throws Exception {
-        final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4");
-        final String expectedJSONResponse = "[[\"1\",\" Institutions: , \",\"getAllFeatures.do\",\"wfs\","+("aGenericType".hashCode())+",\"aGenericType\",[\"\"],\"true\",\"<img src='js/external/extjs/resources/images/default/grid/done.gif'>\",\"<img width='16' heigh='16' src=''>\",\"\",\"<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/page_code.png'><\\/a>\"]]";
+        final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4", "5");
+        final String expectedJSONResponse = "[[\"1\",\" Institutions: , \",\"getAllFeatures.do\",\"getFeatureCount.do\",\"wfs\","+("aGenericType".hashCode())+",\"aGenericType\",[\"\"],\"true\",\"<img src='js/external/extjs/resources/images/default/grid/done.gif'>\",\"<img width='16' heigh='16' src=''>\",\"\",\"<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/page_code.png'><\\/a>\"]]";
         final Iterator mockIterator = context.mock(Iterator.class);
         final StringWriter actualJSONResponse = new StringWriter();
         final CSWRecord mockRecord = context.mock(CSWRecord.class);
@@ -136,6 +136,7 @@ public class TestCSWController {
             oneOf(cswService).getWFSRecords();will(returnValue(new CSWRecord[]{mockRecord}));
             
             allowing(mockRecord).getOnlineResourceName();will(returnValue("aGenericType"));
+            allowing(mockRecord).getDataIdentificationAbstract();will(returnValue("1"));
             allowing(mockRecord).getOnlineResourceDescription();will(returnValue("1"));
             
             
@@ -154,7 +155,7 @@ public class TestCSWController {
         //check that our JSON response has been nicely populated
         //calling the renderer will write the JSON to our mocks
         modelAndView.getView().render(modelAndView.getModel(), mockHttpRequest, mockHttpResponse);
-
+        
         //check that the actual is the expected
         if(expectedJSONResponse.equals(actualJSONResponse.getBuffer().toString()))
             Assert.assertTrue(true);
@@ -164,8 +165,8 @@ public class TestCSWController {
     
     @Test
     public void testGetComplexFeatures() throws Exception {
-        final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4");
-        final String expectedJSONResponse = "[[\"1\",\"2 Institutions: , \",\"3\",\"wfs\","+def.hashCode()+",\"0\",[\"\"],\"true\",\"<img src='js/external/extjs/resources/images/default/grid/done.gif'>\",\"<img width='16' heigh='16' src='4'>\",\"4\",\"<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/page_code.png'><\\/a>\"]]";
+        final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4", "5");
+        final String expectedJSONResponse = "[[\"1\",\"2 Institutions: , \",\"3\",\"4\",\"wfs\","+def.hashCode()+",\"0\",[\"\"],\"true\",\"<img src='js/external/extjs/resources/images/default/grid/done.gif'>\",\"<img width='16' heigh='16' src='5'>\",\"5\",\"<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/page_code.png'><\\/a>\"]]";
         final Iterator mockIterator = context.mock(Iterator.class);
         final StringWriter actualJSONResponse = new StringWriter();
         final CSWRecord mockRecord = context.mock(CSWRecord.class);
@@ -195,7 +196,7 @@ public class TestCSWController {
         //check that our JSON response has been nicely populated
         //calling the renderer will write the JSON to our mocks
         modelAndView.getView().render(modelAndView.getModel(), mockHttpRequest, mockHttpResponse);
-
+        
         //check that the actual is the expected
         if(expectedJSONResponse.equals(actualJSONResponse.getBuffer().toString()))
             Assert.assertTrue(true);
@@ -203,7 +204,48 @@ public class TestCSWController {
             Assert.assertFalse(true);
     }
     
-    
+    @Test
+    public void testGetIgnoredComplexFeatures() throws Exception {
+        final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4", "5");
+        final String expectedJSONResponse = "[]";
+        final Iterator mockIterator = context.mock(Iterator.class);
+        final StringWriter actualJSONResponse = new StringWriter();
+        final CSWRecord mockRecord = context.mock(CSWRecord.class);
+        
+        def.setIgnored(true);
+
+        context.checking(new Expectations() {{
+        	oneOf(propertyConfigurer).resolvePlaceholder(with(any(String.class)));will(returnValue("somejunk"));
+            oneOf(cswService).updateRecordsInBackground();
+            oneOf(knownTypes).iterator();will(returnValue(mockIterator));
+            oneOf(mockIterator).hasNext();will(returnValue(true));
+            oneOf(mockIterator).next();will(returnValue(def));
+            oneOf(cswService).getWFSRecordsForTypename(def.getFeatureTypeName());will(returnValue(new CSWRecord[]{mockRecord}));
+            
+
+            oneOf(mockRecord).getServiceUrl();
+            oneOf(mockRecord).getContactOrganisation();
+
+            oneOf(mockIterator).hasNext();will(returnValue(false));
+
+            //check that the correct response is getting output
+            oneOf (mockHttpResponse).setContentType(with(any(String.class)));
+            oneOf (mockHttpResponse).getWriter(); will(returnValue(new PrintWriter(actualJSONResponse)));
+        }});
+
+        ModelAndView modelAndView = cswController.getComplexFeatures(mockHttpRequest);
+
+        //check that our JSON response has been nicely populated
+        //calling the renderer will write the JSON to our mocks
+        modelAndView.getView().render(modelAndView.getModel(), mockHttpRequest, mockHttpResponse);
+        System.out.println(expectedJSONResponse);//bacon
+        System.out.println(actualJSONResponse);//bacon
+        //check that the actual is the expected
+        if(expectedJSONResponse.equals(actualJSONResponse.getBuffer().toString()))
+            Assert.assertTrue(true);
+        else
+            Assert.assertFalse(true);
+    }
 
     /**
      * Test for when there are no services for a given feature type
@@ -211,7 +253,7 @@ public class TestCSWController {
      */
     @Test
     public void testGetComplexFeaturesNoServices() throws Exception {
-        final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4");
+        final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4", "5");
         final String expectedJSONResponse = "[]";
         final Iterator mockIterator = context.mock(Iterator.class);
         final StringWriter actualJSONResponse = new StringWriter();

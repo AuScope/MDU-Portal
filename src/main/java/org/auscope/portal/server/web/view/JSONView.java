@@ -29,6 +29,11 @@ public class JSONView extends AbstractView {
     public JSONView(JSONArray jsonArray) {
         this.jsonArray = jsonArray;
     }
+    
+  //Can be null
+    public JSONArray getJSONArray() {
+    	return jsonArray;
+    }
 
     protected void renderMergedOutputModel(Map model, HttpServletRequest request, HttpServletResponse response) throws Exception {
         response.setContentType(getContentType());

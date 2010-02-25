@@ -10,6 +10,7 @@ public class KnownFeatureTypeDefinition {
     private String displayName;
     private String description;
     private String proxyRecordFetchUrl;
+    private String proxyRecordCountUrl;
     private String iconUrl;
     private boolean ignored;
 
@@ -18,11 +19,12 @@ public class KnownFeatureTypeDefinition {
     	this.ignored = ignored;
     }
     
-    public KnownFeatureTypeDefinition(String featureTypeName, String displayName, String description, String proxyRecordFetchUrl, String iconUrl) {
+    public KnownFeatureTypeDefinition(String featureTypeName, String displayName, String description, String proxyRecordFetchUrl, String proxyRecordCountUrl, String iconUrl) {
         this.featureTypeName = featureTypeName;
         this.displayName = displayName;
         this.description = description;
         this.proxyRecordFetchUrl = proxyRecordFetchUrl;
+        this.proxyRecordCountUrl = proxyRecordCountUrl;
         this.iconUrl = iconUrl;
         this.ignored = false;
     }
@@ -59,6 +61,14 @@ public class KnownFeatureTypeDefinition {
         return proxyRecordFetchUrl;
     }
     
+    /**
+     * Get the URL that is used to count the number of records for this feature (Can be null / empty)
+     * @return
+     */
+    public String getProxyRecordCountUrl() {
+        return proxyRecordCountUrl;
+    }
+
     public String getIconUrl() {
         return iconUrl;
     }

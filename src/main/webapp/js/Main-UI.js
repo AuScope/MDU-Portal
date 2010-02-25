@@ -16,7 +16,8 @@ Ext.onReady(function() {
         reader: new Ext.data.ArrayReader({}, [
             {   name: 'title'           },
             {   name: 'description'     },
-            {   name: 'proxyURL'        },
+            {   name: 'proxyFetchRecordURL'},
+            {   name: 'proxyRecordCountURL'},
             {   name: 'serviceType'     },
             {   name: 'id'              },
             {   name: 'typeName'        },
@@ -35,7 +36,8 @@ Ext.onReady(function() {
         reader: new Ext.data.ArrayReader({}, [
             {   name: 'title'           },
             {   name: 'description'     },
-            {   name: 'proxyURL'        },
+            {   name: 'proxyFetchRecordURL'},
+            {   name: 'proxyRecordCountURL'},
             {   name: 'serviceType'     },  
             {   name: 'id'              },
             {   name: 'typeName'        },
@@ -176,7 +178,7 @@ Ext.onReady(function() {
         reader: new Ext.data.ArrayReader({}, [
             {   name: 'title'           },
             {   name: 'description'     },
-            {   name: 'proxyURL'        },
+            {   name: 'proxyFetchRecordURL'},
             {   name: 'serviceType'     },
             {   name: 'id'              },
             {   name: 'typeName'        },
@@ -282,7 +284,7 @@ Ext.onReady(function() {
         reader: new Ext.data.ArrayReader({}, [
             {   name:'title'            },
             {   name:'description'      },
-            {   name:'proxyURL'         },
+            {   name:'proxyFetchRecordURL'},
             {   name: 'serviceType'     },
             {   name: 'id'              },
             {   name: 'typeName'        },
@@ -371,7 +373,8 @@ Ext.onReady(function() {
         selectedRecord.responseTooltip = new ResponseTooltip();
 
         var serviceURLs = selectedRecord.get('serviceURLs');
-        var proxyURL = selectedRecord.get('proxyURL');
+        var proxyFetchRecordURL = selectedRecord.get('proxyFetchRecordURL');
+        var proxyRecordCountURL = selectedRecord.get('proxyRecordCountURL');
         var iconUrl = selectedRecord.get('iconUrl');
 
         var finishedLoadingCounter = serviceURLs.length;
@@ -386,7 +389,7 @@ Ext.onReady(function() {
         var filterParameters = filterPanel.getLayout().activeItem == filterPanel.getComponent(0) ? "&typeName=" + selectedRecord.get('typeName') : filterPanel.getLayout().activeItem.getForm().getValues(true);
 
         for (var i = 0; i < serviceURLs.length; i++) {
-            handleQuery(serviceURLs[i], selectedRecord, proxyURL, iconUrl, overlayManager, filterParameters, function() {
+        	handleQuery(serviceURLs[i], selectedRecord, proxyFetchRecordURL, proxyRecordCountURL, iconUrl, overlayManager, filterParameters, function() {
                 //decrement the counter
                 finishedLoadingCounter--;
 
@@ -398,51 +401,74 @@ Ext.onReady(function() {
         }
     };
 
-    var handleQuery = function(serviceUrl, selectedRecord, proxyURL, iconUrl, overlayManager, filterParameters, finishedLoadingHandler) {
-        selectedRecord.responseTooltip.addResponse(serviceUrl, "Loading...");
-        GDownloadUrl(proxyURL + '?' + filterParameters + '&serviceUrl=' + serviceUrl, function(data, responseCode) {
-            if (responseCode == 200) {
-                var jsonResponse = eval('(' + data + ')');
-                if (jsonResponse.success) {
-                    var icon = new GIcon(G_DEFAULT_ICON, iconUrl);
-                    icon.iconSize = new GSize(32, 32);
-                    
-                    //Parse our KML
-                    var parser = new KMLParser(jsonResponse.data.kml);
-                    parser.makeMarkers(icon, function(marker) {
-                        marker.typeName = selectedRecord.get('typeName');
-                        marker.wfsUrl = serviceUrl;
-                        marker.parentRecord = selectedRecord;
-                    });
-                    
-                    var markers = parser.markers;
-                    var overlays = parser.overlays;
-                    
-                    //Add our single points and polygons
-                    overlayManager.markerManager.addMarkers(markers, 0);
-                    for(var i = 0; i < overlays.length; i++) {
-                    	overlayManager.addOverlay(overlays[i]);
-                    }
-                    overlayManager.markerManager.refresh();
-
-                    //store the status
-                    selectedRecord.responseTooltip.addResponse(serviceUrl, (markers.length + polygons.length) + " records retrieved.");
-                } else {
-                    //store the status
-                    selectedRecord.responseTooltip.addResponse(serviceUrl, jsonResponse.msg);
+    var handleQuery = function(serviceUrl, selectedRecord, proxyFetchRecordURL, proxyRecordCountURL, iconUrl, overlayManager, filterParameters, finishedLoadingHandler) {
+    	//This is run if the download works out succesful
+    	var handleDownloadSuccess = function(data, responseCode) {
+    		var jsonResponse = eval('(' + data + ')');
+            if (jsonResponse.success) {
+                var icon = new GIcon(G_DEFAULT_ICON, iconUrl);
+                icon.iconSize = new GSize(32, 32);
+                
+                //Parse our KML
+                var parser = new KMLParser(jsonResponse.data.kml);
+                parser.makeMarkers(icon, function(marker) {
+                    marker.typeName = selectedRecord.get('typeName');
+                    marker.wfsUrl = serviceUrl;
+                    marker.parentRecord = selectedRecord; //create a reference from our marker to our record
+                });
+                
+                var markers = parser.markers;
+                var overlays = parser.overlays;
+                
+                //Add our single points and overlays (which consist polygons and lines)
+                overlayManager.markerManager.addMarkers(markers, 0);
+                for(var i = 0; i < overlays.length; i++) {
+                	overlayManager.addOverlay(overlays[i]);
                 }
-                //markerOverlay.addList(markers);
-            } else if (responseCode == -1) {
+                overlayManager.markerManager.refresh();
+
+                //store the gml for later download needs
+                selectedRecord.gml = jsonResponse.data.gml;
+
+                //store the status
+                selectedRecord.responseTooltip.addResponse(serviceUrl, (markers.length + overlays.length) + " records retrieved.");
+            } else {
+                //store the status
+                selectedRecord.responseTooltip.addResponse(serviceUrl, jsonResponse.msg);
+            }
+            
+            finishedLoadingHandler();
+    	};
+    	
+    	//This is run if the download fails
+    	var handleDownloadFailure = function(data, responseCode) {
+    		if (responseCode == -1) {
                 //store the status
                 selectedRecord.responseTooltip.addResponse(serviceUrl, "Data request timed out. Please try again later.");
             } else {
                 //store the status
                 selectedRecord.responseTooltip.addResponse(serviceUrl, "Request resulted in error. Please try again later.");
             }
-
-            //we are finito
-            finishedLoadingHandler();
-        });
+    		
+    		finishedLoadingHandler();
+    	};
+    	
+    	//This is run if the user cancels the download
+    	var handleDownloadCancelled = function() {
+    		selectedRecord.responseTooltip.addResponse(serviceUrl, "The request was cancelled by the user.");
+    		selectedRecord.set('layerVisible', false);
+    		finishedLoadingHandler();
+    	};
+    	
+    	var downloadManager = new FeatureDownloadManager(serviceUrl,proxyRecordCountURL,proxyFetchRecordURL, filterParameters, map);
+    	
+    	downloadManager.downloadFinishedHandler = handleDownloadSuccess;
+    	downloadManager.downloadErrorHandler = handleDownloadFailure;
+    	downloadManager.downloadCancelledHandler = handleDownloadCancelled;
+    	
+    	selectedRecord.responseTooltip.addResponse(serviceUrl, "Loading...");
+    	
+    	downloadManager.startDownload();
     };
 
     var wmsHandler = function(record) {

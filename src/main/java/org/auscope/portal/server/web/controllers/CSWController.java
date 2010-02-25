@@ -84,6 +84,7 @@ private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record
     										  description,
     										  "",
     										  "getAllFeatures.do",
+    										  "getFeatureCount.do",
     										  iconUrl);
     }
     
@@ -98,6 +99,10 @@ private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record
      * @return
      */
     private JSONArray generateComplexJSONResponse(KnownFeatureTypeDefinition knownType, CSWRecord[] records) {
+    	
+    	if (knownType.getIgnored()) 
+    		return null;
+    	
     	JSONArray tableRow = new JSONArray();
 
         //add the name of the layer/feature type
@@ -125,6 +130,9 @@ private KnownFeatureTypeDefinition generateTempKnownFeatureType(CSWRecord record
 
         //add the service URL - this is the spring controller for handling minocc
         tableRow.add(knownType.getProxyRecordFetchUrl());
+        
+        //add the url for querying record count
+        tableRow.add((knownType.getProxyRecordCountUrl() == null) ? "" : knownType.getProxyRecordCountUrl());
 
         //add the type: wfs or wms
         tableRow.add("wfs");
