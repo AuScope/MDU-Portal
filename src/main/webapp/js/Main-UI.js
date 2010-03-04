@@ -502,7 +502,7 @@ Ext.onReady(function() {
     };
 
     // custom column plugin example
-    var activeLayersPanelCheckColumn = new Ext.grid.CheckColumn({
+    var activeLayersPanelCheckColumn = new Ext.ux.grid.EventCheckColumn({
         header: "Visible",
         dataIndex: 'layerVisible',
         width: 55,
@@ -721,12 +721,18 @@ Ext.onReady(function() {
 
                             var url = serviceUrls[i];
 
+                            if (url.length > 0 && url[url.length - 1] != '?')
+                            	url += '?';
+                            
                             url += "&REQUEST=GetMap";
                             url += "&SERVICE=WMS";
                             url += "&VERSION=1.1.0";
                             url += "&LAYERS=" + record.get('typeName');
-                            /*if (this.styles)
-                             url += "&STYLES=" + this.styles;
+                            if (this.styles)
+                            	url += "&STYLES=" + this.styles;
+                            else
+                            	url += "&STYLES="; //Styles parameter is mandatory, using a null string ensures default style  
+                            /*
                              if (this.sld)
                              url += "&SLD=" + this.sld;*/
                             url += "&FORMAT=" + "image/png";
@@ -879,15 +885,17 @@ Ext.onReady(function() {
         map = new GMap2(centerPanel.body.dom);
         
         /* TODO:    AUS-1526
-        // Two ways of enabling search bar        
+        // Two ways of enabling search bar      
         map = new GMap2( centerPanel.body.dom
                        , {googleBarOptions:{ showOnLoad : true//,
                           //resultList:G_GOOGLEBAR_RESULT_LIST_SUPPRESS//,
                                              //onMarkersSetCallback : myCallback
                                             }
                         });
-        or ....
-        map.enableGoogleBar();        
+        or ... */
+        
+        map.enableGoogleBar();
+        /*        
         // Problems, find out how to
         1. turn out advertising
         2. Narrow down location seraches to the current map view 
@@ -916,13 +924,11 @@ Ext.onReady(function() {
         map.addControl(new DragZoomControl(), new GControlPosition(G_ANCHOR_TOP_RIGHT, new GSize(345, 7)));
     }
 
-    // Fix for IE resize problem
-    if(Ext.isIE){
-        map.checkResize();
-        Ext.get('center_region').on('resize',function(){
-            map.checkResize();
-        },this);
-    }  
+    // Fix for IE/Firefox resize problem (See issue AUS-1364 and AUS-1565 for more info)
+    map.checkResize();
+    centerPanel.on('resize', function() {
+    	map.checkResize();
+    });
     
     //updateCSWRecords dud gloabal for geoxml class
     theglobalexml = new GeoXml("theglobalexml", map, null, null);
@@ -955,5 +961,5 @@ Ext.onReady(function() {
     complexFeaturesStore.load({toolbar:complexFeaturesPanel.getTopToolbar(), parentPanel:complexFeaturesPanel});
     genericFeaturesStore.load({toolbar:genericFeaturesPanel.getTopToolbar(), parentPanel:genericFeaturesPanel});
     wmsLayersStore.load({toolbar:wmsLayersPanel.getTopToolbar(), parentPanel:wmsLayersPanel});
-
+    
 });

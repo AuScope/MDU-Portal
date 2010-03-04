@@ -55,7 +55,7 @@ var gMapClickController = function(map, overlay, latlng, activeLayersStore) {
 		return;
 	
     if (overlay instanceof GMarker) {
-        if (overlay.typeName == "gsml:Borehole") {
+        if (overlay.typeName == "gsml:BoreholeHeader" || overlay.typeName == "gsml:Borehole") {
             new NvclInfoWindow(map,overlay).show();
         }
         else if (overlay.typeName == "ngcp:GnssStation") {

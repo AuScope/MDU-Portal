@@ -14,7 +14,7 @@
       <div id="menu">
          <ul >
             <li ><a href="http://csiro.au/">csiro.au<span></span></a></li>
-            <li class="current"><a href="gmap.html">MDU Discovery Portal<span></span></a></li>
+            <li  <%if (request.getRequestURL().toString().contains("/gmap.jsp")) {%>class="current" <%} %>><a href="gmap.html">MDU Discovery Portal<span></span></a></li>
             
             <security:authorize ifAllGranted="ROLE_ANONYMOUS">
             	<li><a href="login.html">Login<span></span></a></li>
