@@ -45,7 +45,8 @@
       <intercept-url pattern="/admin.html" access="ROLE_ADMINISTRATOR" />
       <intercept-url pattern="/**" filters="none" />
       <s:anonymous/>
-      <s:logout logout-success-url="/gmap.html"/>
+      <!-- <s:logout logout-success-url="/gmap.html"/> -->
+      <s:logout logout-success-url="/ShibLogout"/>
    </http>
 
    <!-- We use our own user details service so that we can assign ROLE_USER to users that authenticate with AAF but are unknown to us -->
