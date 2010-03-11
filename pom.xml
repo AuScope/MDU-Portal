@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"> 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.auscope.portal</groupId>
-    <artifactId>portal</artifactId>
+    <artifactId>MDU-Portal</artifactId>
     <packaging>war</packaging>
     <version>0.0.2</version>
     <name>MDU-Portal Maven Webapp</name>

@@ -43,12 +43,14 @@ var genericParserClickHandler = function (map, overlay, latlng, activeLayersStor
 /**
  * When someone clicks on the google maps we show popups specific to each 
  * feature type/marker that is clicked on
+ * @param {Ext.data.Store}
  * @param {map}
  * @param {overlay}
  * @param {latlng}
  * @param {activeLayersStore}
  */
 var gMapClickController = function(map, overlay, latlng, activeLayersStore) {
+	
 	
 	//Try to handle a generic parser layer click
 	if (genericParserClickHandler(map,overlay,latlng,activeLayersStore))
@@ -68,13 +70,18 @@ var gMapClickController = function(map, overlay, latlng, activeLayersStore) {
     	if (overlay.description != null) {
     		map.openInfoWindowHtml(overlay.getVertex(0),overlay.description);
     	}
-    } else {        
-        for (i = 0; i < activeLayersStore.getCount(); i++) {
+    } else {
+    	//If the user clicks on an info window, we will still get click events, lets ignore these
+    	if (latlng == null || latlng == undefined)
+    		return;
+
+        for (var i = 0; i < activeLayersStore.getCount(); i++) {
             var record = activeLayersPanel.getStore().getAt(i);
             if (record.get('serviceType') == 'wms') {
                 var TileUtl = new Tile(map,latlng);
 
                 var url = "wmsMarkerPopup.do"
+                var url = "/wmsMarkerPopup.do";
                 url += "?WMS_URL=" + record.get('serviceURLs');
                 url += "&lat=" + latlng.lat();
                 url += "&lng=" + latlng.lng();
@@ -83,7 +90,7 @@ var gMapClickController = function(map, overlay, latlng, activeLayersStore) {
                 url += "&y=" + TileUtl.getTilePoint().y;
                 url += '&BBOX=' + TileUtl.getTileCoordinates();
                 url += '&WIDTH=' + TileUtl.getTileWidth();
-                url += '&HEIGHT=' + TileUtl.getTileHeight();    			
+                url += '&HEIGHT=' + TileUtl.getTileHeight();
                 
                 map.getDragObject().setDraggableCursor("pointer");
                 GDownloadUrl(url, function(response, responseCode) {
@@ -103,8 +110,8 @@ var gMapClickController = function(map, overlay, latlng, activeLayersStore) {
                         alert('Remote server returned error code: ' + responseCode);
                     }
                 });
-            }        	    			
-    	}
+            }
+        }
     }
 };
 
@@ -114,6 +121,7 @@ var gMapClickController = function(map, overlay, latlng, activeLayersStore) {
  * We need to hack a bit here as there is not much that we can check for.
  * For example the data does not have to come in tabular format.
  * In addition html does not have to be well formed.
+ * In addition an "empty" click can still send style information
  * 
  * So ... we will assume that minimum html must be longer then 30 chars
  * eg. data string: <table border="1"></table>
@@ -123,17 +131,21 @@ var gMapClickController = function(map, overlay, latlng, activeLayersStore) {
  * @param {iStr} HTML string content to be verified 
  * @return {Boolean} Status of the
  */
-function isDataThere(iStr) 
-{	
+function isDataThere(iStr) {	
 	//This isn't perfect and can technically fail
 	//but it is "good enough" unless you want to start going mental with the checking
-	var startIndex = iStr.search('<body>');
-	var endIndex = iStr.search('</body>');
+	var lowerCase = iStr.toLowerCase();
 	
-	if (startIndex == -1 || endIndex == -1)
-		return false;
-	
-	return ((endIndex - startIndex) > 32);
+	//If we have something resembling well formed HTML,
+	//We can test for the amount of data between the body tags
+	var startIndex = lowerCase.indexOf('<body>');
+	var endIndex = lowerCase.indexOf('</body>');
+	if (startIndex >= 0 || endIndex >= 0) {
+		return ((endIndex - startIndex) > 32);
+	}
+		
+	//otherwise it's likely we've just been sent the contents of the body 
+	return lowerCase.length > 32;
 }
 
 /**
