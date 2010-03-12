@@ -120,9 +120,15 @@ FeatureDownloadManager.prototype.startDownload = function(boundingBox, alreadyPr
 	var url = this.recordCountURL + '?' + this.filterParams + '&serviceUrl=' + this.serviceURL;
 	if (boundingBox != null && boundingBox != undefined && boundingBox.length > 0) 
 		url += '&boundingBox=' + boundingBox;
-	
-	var callingInstance = this;
-    GDownloadUrl(url, function (data, responseCode) {
-    	callingInstance.doCount(data, responseCode, alreadyPrompted);
-    });
+
+	//If we have a count function, go through the motions
+	//Otherwise just download the URL
+	if (!this.recordCountURL || this.recordCountURL.length == 0) {
+		this.doDownload(this.currentBoundingBox);
+	} else {
+		var callingInstance = this;
+	    GDownloadUrl(url, function (data, responseCode) {
+	    	callingInstance.doCount(data, responseCode, alreadyPrompted);
+	    });
+	}
 }
