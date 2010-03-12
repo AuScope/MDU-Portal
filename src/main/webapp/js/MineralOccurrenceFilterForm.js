@@ -76,7 +76,8 @@ MineralOccurrenceFilterForm = function(id) {
 
     var commodityStore = new Ext.data.SimpleStore({
         fields : ['urn', 'label'],
-        proxy  : new Ext.data.HttpProxy({url: WEB_CONTEXT + '/getCommodities.do'}),
+        proxy  : new Ext.data.HttpProxy({url: WEB_CONTEXT + '/getAllCommodities.do'}),
+        sortInfo : {field:'label',order:'ASC'},
         reader : new Ext.data.ArrayReader({}, [
             { name:'urn'   },
             { name:'label' }

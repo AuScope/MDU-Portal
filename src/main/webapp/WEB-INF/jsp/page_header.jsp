@@ -7,13 +7,13 @@
          </h1>
       </div>
                                   
-      <security:authorize ifAllGranted="ROLE_ADMINISTRATOR">
-         <a href="admin.html"><span>Administration</span></a> 
-      </security:authorize>
-      
+     
       <div id="menu">
          <ul >
-            <li ><a href="http://csiro.au/">csiro.au<span></span></a></li>
+            <security:authorize ifAllGranted="ROLE_ADMINISTRATOR">
+				<li <%if (request.getRequestURL().toString().contains("/admin.jsp")) {%>class="current" <%} %>><a href="admin.html">Administration<span></span></a></li>
+      		</security:authorize>
+			<li ><a href="http://csiro.au/">csiro.au<span></span></a></li>
             <li  <%if (request.getRequestURL().toString().contains("/gmap.jsp")) {%>class="current" <%} %>><a href="gmap.html">MDU Discovery Portal<span></span></a></li>
             
             <security:authorize ifAllGranted="ROLE_ANONYMOUS">
