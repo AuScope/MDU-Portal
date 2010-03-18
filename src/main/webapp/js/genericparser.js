@@ -37,7 +37,7 @@ Ext.onReady(function() {
         
         //We have a leaf
         if (isLeafNode(documentNode)) {
-        	treeNode = new Ext.tree.TreeNode({text: 	documentNode.tagName + " = " + documentNode.textContent});
+            treeNode = new Ext.tree.TreeNode({text: documentNode.tagName + ' = ' + documentNode.firstChild.nodeValue});
         } else { //we have a parent node
         	var parentName = documentNode.tagName;
         	if (documentNode.attributes.length > 0) {
@@ -80,7 +80,7 @@ Ext.onReady(function() {
 		}
 		htmlText += '&gt;</span>';
 		if (isLeaf)
-			htmlText += xmlDocNode.textContent;
+			htmlText += xmlDocNode.firstChild.nodeValue
 		else
 			htmlText += '<br/>';
 		
@@ -122,8 +122,7 @@ Ext.onReady(function() {
 	        } else {
 				//Load our xml document
 				var xmlString = jsonResponse.data.gml;
-				var parser=new DOMParser();
-				var xmlDocument = parser.parseFromString(xmlString,"text/xml");
+				var xmlDocument = GXml.parse(xmlString);
 		
 				//Load our rootNode with its children
 				var rootNode = createTreeNode(xmlDocument.documentElement);
