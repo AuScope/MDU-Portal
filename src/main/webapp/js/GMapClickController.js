@@ -19,13 +19,22 @@ var genericParserClickHandler = function (map, overlay, latlng, activeLayersStor
 				break;
 			} 
 		}
-		
+
+        //Add our links to the provider URL's
+        var html = '';
+        for (var j = 0; j < parentRecord.get('recordInfoURLList').length; j++) {
+            var infoUrl = parentRecord.get('recordInfoURLList')[j];
+            if (infoUrl && infoUrl.length > 0) {
+                html += '<a href="' + infoUrl + '">Click here to view the full record</a>'
+            }
+        }
+
 		//Parse the parameters to our iframe popup and get that to request the raw gml
-		var html = '<iframe src="genericparser.html';
+		html += '<iframe src="genericparser.html';
 		html += '?serviceUrl=' + parentRecord.get('serviceURLs');
 		html += '&typeName=' + parentRecord.get('typeName');
 		html += '&featureId=' + gmlID;
-		html += '" width="600" height="350"/>';
+		html += '" width="665" height="350" frameborder="0"/>';
 		
 		if (overlay instanceof GMarker) {
 			overlay.openInfoWindowHtml(html);

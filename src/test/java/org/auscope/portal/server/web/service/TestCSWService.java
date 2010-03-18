@@ -84,7 +84,7 @@ public class TestCSWService {
       		} else {
       			ArrayList tempList = new ArrayList();
       			tempList.add(AUTHORIZED_ROLE);
-      			serviceUrlList.add(new CSWServiceItem("http://localhost", tempList)); //This one is restricted
+      			serviceUrlList.add(new CSWServiceItem("http://localhost", "http://localhost", tempList)); //This one is restricted
       		}
       	}
       	

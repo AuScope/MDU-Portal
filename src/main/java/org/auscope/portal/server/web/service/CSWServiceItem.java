@@ -10,8 +10,11 @@ import javax.servlet.http.HttpServletRequest;
  *
  */
 public class CSWServiceItem {
+    public final String PLACEHOLDER_RECORD_ID = "%recordID%";
+
 	private String serviceUrl;
 	private String[] restrictedRoleList;
+    private String recordInformationUrl;
 	
 	/**
 	 * Creates a new service item with NO role restrictions
@@ -20,14 +23,21 @@ public class CSWServiceItem {
 	public CSWServiceItem(String serviceUrl) {
 		this.serviceUrl = serviceUrl;
 	}
-	
+
+    public CSWServiceItem(String serviceUrl, String recordInformationUrl) {
+        this.serviceUrl = serviceUrl;
+        this.recordInformationUrl = recordInformationUrl;
+    }
+
+
 	/**
 	 * Creates a new service item that is restricted to users with ANY of the specified roles
 	 * @param serviceUrl
 	 * @param restrictedToRoles the list of roles (the toString method will be called on each element and stored)
 	 */
-	public CSWServiceItem(String serviceUrl, Collection restrictedRoleList) {
+	public CSWServiceItem(String serviceUrl, String recordInformationUrl, Collection restrictedRoleList) {
 		this.serviceUrl = serviceUrl;
+        this.recordInformationUrl = recordInformationUrl;
 		
 		this.restrictedRoleList = new String[restrictedRoleList.size()];
 		int i = 0;
@@ -71,4 +81,14 @@ public class CSWServiceItem {
 		}
 		return false;
 	}
+
+    /**
+     * Gets a URL (can be null) representing the URL to query for extended information about this record.
+     *
+     * This URL may contain the string "${recordId}" which will should be replaced with the record ID to lookup
+     * @return
+     */
+    public String getRecordInformationUrl() {
+        return recordInformationUrl;
+    }
 }

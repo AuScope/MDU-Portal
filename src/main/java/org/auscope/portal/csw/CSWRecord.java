@@ -21,6 +21,8 @@ public class CSWRecord {
     private String onlineResourceDescription;
     private String onlineResourceProtocol;
     private String contactOrganisation;
+    private String fileIdentifier;
+    private String recordInfoUrl;
 
 
     private String dataIdentificationAbstract;
@@ -58,6 +60,22 @@ public class CSWRecord {
         String contactOrganisationExpression = "gmd:contact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString";
         tempNode = (Node)xPath.evaluate(contactOrganisationExpression, node, XPathConstants.NODE);
         contactOrganisation = tempNode != null ? tempNode.getTextContent() : "";
+
+        String fileIdentifierExpression = "gmd:fileIdentifier/gco:CharacterString";
+        tempNode = (Node)xPath.evaluate(fileIdentifierExpression, node, XPathConstants.NODE);
+        fileIdentifier = tempNode != null ? tempNode.getTextContent() : "";
+    }
+
+    public void setRecordInfoUrl(String recordInfoUrl) {
+        this.recordInfoUrl = recordInfoUrl;
+    }
+    
+    public String getRecordInfoUrl() {
+        return recordInfoUrl;
+    }
+
+    public String getFileIdentifier() {
+        return fileIdentifier;
     }
 
     public String getServiceName() {

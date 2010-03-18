@@ -37,7 +37,8 @@ Ext.onReady(function() {
         
         //We have a leaf
         if (isLeafNode(documentNode)) {
-            treeNode = new Ext.tree.TreeNode({text: documentNode.tagName + ' = ' + documentNode.firstChild.nodeValue});
+            var text = (documentNode.firstChild == null) ? '' : documentNode.firstChild.nodeValue;
+            treeNode = new Ext.tree.TreeNode({text: documentNode.tagName + ' = ' + text});
         } else { //we have a parent node
         	var parentName = documentNode.tagName;
         	if (documentNode.attributes.length > 0) {
@@ -79,10 +80,12 @@ Ext.onReady(function() {
 			htmlText += ' ' + xmlDocNode.attributes[i].nodeName + '=&quot;' + xmlDocNode.attributes[i].value + '&quot;'; 
 		}
 		htmlText += '&gt;</span>';
-		if (isLeaf)
-			htmlText += xmlDocNode.firstChild.nodeValue
-		else
+		if (isLeaf) {
+            var text = (xmlDocNode.firstChild == null) ? '' : xmlDocNode.firstChild.nodeValue;
+			htmlText += text;
+        } else {
 			htmlText += '<br/>';
+        }
 		
 		//Write any children
 		Ext.each(xmlDocNode.childNodes, function(docNodeChild) {

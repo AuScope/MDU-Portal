@@ -122,7 +122,9 @@ public class TestCSWController {
     @Test
     public void testGetGenericFeatures() throws Exception {
         final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4", "5");
-        final String expectedJSONResponse = "[[\"1\",\" Institutions: , \",\"getAllFeatures.do\",\"getFeatureCount.do\",\"wfs\","+("aGenericType".hashCode())+",\"aGenericType\",[\"\"],\"true\",\"<img src='js/external/extjs/resources/images/default/grid/done.gif'>\",\"<img width='16' heigh='16' src=''>\",\"\",\"<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/page_code.png'><\\/a>\"]]";
+        final String expectedInfoUrl = "http://infourl.com";
+        final String contactOrg = "jack";
+        final String expectedJSONResponse = "[[\"1\",\" Institutions: " + contactOrg + ", \",[\"" + contactOrg + "\"],\"getAllFeatures.do\",\"getFeatureCount.do\",[\"" + expectedInfoUrl + "\"],\"wfs\","+("aGenericType".hashCode())+",\"aGenericType\",[\"\"],\"true\",\"<img src='js/external/extjs/resources/images/default/grid/done.gif'>\",\"<img width='16' heigh='16' src=''>\",\"\",\"<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/page_code.png'><\\/a>\"]]";
         final Iterator mockIterator = context.mock(Iterator.class);
         final StringWriter actualJSONResponse = new StringWriter();
         final CSWRecord mockRecord = context.mock(CSWRecord.class);
@@ -138,10 +140,11 @@ public class TestCSWController {
             allowing(mockRecord).getOnlineResourceName();will(returnValue("aGenericType"));
             allowing(mockRecord).getDataIdentificationAbstract();will(returnValue("1"));
             allowing(mockRecord).getOnlineResourceDescription();will(returnValue("1"));
+            allowing(mockRecord).getRecordInfoUrl();will(returnValue(expectedInfoUrl));
             
             
             oneOf(mockRecord).getServiceUrl();
-            oneOf(mockRecord).getContactOrganisation();
+            allowing(mockRecord).getContactOrganisation();will(returnValue(contactOrg ));
 
             oneOf(mockIterator).hasNext();will(returnValue(false));
 
@@ -157,17 +160,15 @@ public class TestCSWController {
         modelAndView.getView().render(modelAndView.getModel(), mockHttpRequest, mockHttpResponse);
 
         //check that the actual is the expected
-        if(expectedJSONResponse.equals(actualJSONResponse.getBuffer().toString()))
-            Assert.assertTrue(true);
-        else
-            Assert.assertFalse(true);
+        Assert.assertEquals(expectedJSONResponse, actualJSONResponse.getBuffer().toString());
     }
     
     @Test
     public void testGetComplexFeatures() throws Exception {
     	final String orgName = "testOrg";
+    	final String expectedInfoUrl = "http://infourl";
         final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4", "5");
-        final String expectedJSONResponse = "[[\"1\",\"2 Institutions: " + orgName + ", \",[\"" + orgName +  "\"],\"3\",\"wfs\","+def.hashCode()+",\"0\",[\"\"],\"true\",\"<img src='js/external/extjs/resources/images/default/grid/done.gif'>\",\"<img width='16' heigh='16' src='4'>\",\"4\",\"<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/page_code.png'><\\/a>\"]]";
+        final String expectedJSONResponse = "[[\"1\",\"2 Institutions: " + orgName + ", \",[\"" + orgName +  "\"],\"3\",\"4\",[\"" + expectedInfoUrl + "\"],\"wfs\","+def.hashCode()+",\"0\",[\"\"],\"true\",\"<img src='js/external/extjs/resources/images/default/grid/done.gif'>\",\"<img width='16' heigh='16' src='5'>\",\"5\",\"<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/page_code.png'><\\/a>\"]]";
         final Iterator mockIterator = context.mock(Iterator.class);
         final StringWriter actualJSONResponse = new StringWriter();
         final CSWRecord mockRecord = context.mock(CSWRecord.class);
@@ -184,6 +185,7 @@ public class TestCSWController {
 
             oneOf(mockRecord).getServiceUrl();
             allowing(mockRecord).getContactOrganisation();will(returnValue(orgName));
+            allowing(mockRecord).getRecordInfoUrl();will(returnValue(expectedInfoUrl));
 
             oneOf(mockIterator).hasNext();will(returnValue(false));
 
@@ -198,11 +200,10 @@ public class TestCSWController {
         //calling the renderer will write the JSON to our mocks
         modelAndView.getView().render(modelAndView.getModel(), mockHttpRequest, mockHttpResponse);
         
-        //check that the actual is the expected
-        if(expectedJSONResponse.equals(actualJSONResponse.getBuffer().toString()))
-            Assert.assertTrue(true);
-        else
-            Assert.assertFalse(true);
+        System.out.println(expectedJSONResponse);
+        System.out.println(actualJSONResponse.getBuffer().toString());
+        
+        Assert.assertEquals(expectedJSONResponse, actualJSONResponse.getBuffer().toString());
     }
     
     @Test

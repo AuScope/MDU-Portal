@@ -80,6 +80,16 @@ public class CSWService {
                 String methodResponse =  serviceCaller.getMethodResponseAsString(getRecordsMethod.makeMethod(), newClient);
                 Document document = util.buildDomFromString(methodResponse);
                 CSWRecord[] tempRecords = new CSWGetRecordResponse(document).getCSWRecords();
+
+                //These records should also have a link back to their provider
+                if (serviceItem.getRecordInformationUrl() != null && serviceItem.getRecordInformationUrl().length() > 0) {
+                    for (CSWRecord record : tempRecords) {
+                        if (record.getFileIdentifier() != null && record.getFileIdentifier().length() > 0) {
+                            String recordInfoUrl = serviceItem.getRecordInformationUrl().replace(serviceItem.PLACEHOLDER_RECORD_ID, record.getFileIdentifier());
+                            record.setRecordInfoUrl(recordInfoUrl);
+                        }
+                    }
+                }
                 
                 //This is where we need to avoid race conditions 
                 this.setCache(tempRecords);

@@ -115,6 +115,7 @@ public class CSWController {
         
         String servicesDescription = "Institutions: ";
         JSONArray serviceURLs = new JSONArray();
+        JSONArray recordInfoURLs = new JSONArray();
 
         //if there are no services available for this feature type then don't show it in the portal
         if(records.length == 0)
@@ -124,6 +125,10 @@ public class CSWController {
             serviceURLs.add(record.getServiceUrl());
             servicesDescription += record.getContactOrganisation() + ", ";
 			contactOrgs.add(record.getContactOrganisation());
+
+            if (record.getRecordInfoUrl() != null && record.getRecordInfoUrl().length() > 0)
+                recordInfoURLs.add(record.getRecordInfoUrl());
+
             //serviceURLs.add("http://www.gsv-tb.dpi.vic.gov.au/AuScope-MineralOccurrence/services");
             //serviceURLs.add("http://auscope-services.arrc.csiro.au/deegree-wfs/services");
         }
@@ -137,12 +142,12 @@ public class CSWController {
         //add the service URL - this is the spring controller for handling minocc
         tableRow.add(knownType.getProxyRecordFetchUrl());
         
-        
-        //add the url for querying record count
         //add the url for querying record count
         tableRow.add((knownType.getProxyRecordCountUrl() == null) ? "" : knownType.getProxyRecordCountUrl());
-        //tableRow.add((knownType.getProxyRecordCountUrl() == null) ? "" : knownType.getProxyRecordCountUrl());
 
+        //Add the url list for querying the record set itself (at the provider)
+        tableRow.add(recordInfoURLs);
+        
         //add the type: wfs or wms
         tableRow.add("wfs");
 
@@ -172,8 +177,8 @@ public class CSWController {
      * Returns a JSON response with a data structure like so
      *
      * [
-     * [title, description, [contactOrganisations], proxyRecordFetchURL, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage],
-     * [title, description, [contactOrganisations], proxyRecordFetchURL, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage]
+     * [title, description, [contactOrganisations], recordFetchURL, recordCountURL, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage],
+     * [title, description, [contactOrganisations], recordFetchURL, recordCountURL, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage]
      * ]
      *
      * @return
@@ -208,8 +213,8 @@ public class CSWController {
      * Returns a JSON response with a data structure like so
      *
      * [
-     * [title, description, [contactOrganisations], proxyRecordFetch, proxyRecordCount, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage],
-     * [title, description, [contactOrganisations], proxyRecordFetch, proxyRecordCount, serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage]
+     * [title, description, [contactOrganisations], proxyRecordFetch, proxyRecordCount, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage],
+     * [title, description, [contactOrganisations], proxyRecordFetch, proxyRecordCount, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage]
      * ]
      *
      * @return
