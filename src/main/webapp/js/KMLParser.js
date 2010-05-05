@@ -24,11 +24,9 @@ KMLParser.prototype.generateCoordList = function(coordsAsString) {
     return parsedCoordList;
 }
 
-KMLParser.prototype.parseLineString = function(placemarkNode) {
-	var name = GXml.value(placemarkNode.getElementsByTagName("name")[0]);
-    var description = GXml.value(placemarkNode.getElementsByTagName("description")[0]);
+KMLParser.prototype.parseLineString = function(name, description, lineStringNode) {
    
-    var parsedCoordList = this.generateCoordList(GXml.value(placemarkNode.getElementsByTagName("coordinates")[0]));
+    var parsedCoordList = this.generateCoordList(GXml.value(lineStringNode.getElementsByTagName("coordinates")[0]));
     if (parsedCoordList.length == 0)
     	return null;
     
@@ -42,12 +40,8 @@ KMLParser.prototype.parseLineString = function(placemarkNode) {
 
 //Given a root placemark node attempt to parse it as a single point and return it
 //Returns a single GPolygon
-KMLParser.prototype.parsePolygon = function(placemarkNode) {
-	
-	var name = GXml.value(placemarkNode.getElementsByTagName("name")[0]);
-    var description = GXml.value(placemarkNode.getElementsByTagName("description")[0]);
-   
-    var parsedCoordList = this.generateCoordList(GXml.value(placemarkNode.getElementsByTagName("coordinates")[0]));
+KMLParser.prototype.parsePolygon = function(name, description, polygonNode) {
+    var parsedCoordList = this.generateCoordList(GXml.value(polygonNode.getElementsByTagName("coordinates")[0]));
     if (parsedCoordList.length == 0)
     	return null;
     	
@@ -60,15 +54,8 @@ KMLParser.prototype.parsePolygon = function(placemarkNode) {
 
 //Given a root placemark node attempt to parse it as a single point and return it
 //Returns a single GMarker
-KMLParser.prototype.parsePoint = function(icon, placemarkNode) {
-	// var name = GXml.value(placemarks[i].selectSingleNode(".//*[local-name() = 'name']"));
-    var name = GXml.value(placemarkNode.getElementsByTagName("name")[0]);
-
-    // var description = GXml.value(placemarks[i].selectSingleNode(".//*[local-name() = 'description']"));
-    var description = GXml.value(placemarkNode.getElementsByTagName("description")[0]);
-
-    // var coordinates = GXml.value(placemarks[i].selectSingleNode(".//*[local-name() = 'coordinates']")).split(',');
-    var coordinates = GXml.value(placemarkNode.getElementsByTagName("coordinates")[0]).split(',');
+KMLParser.prototype.parsePoint = function(name, description, icon, pointNode) {
+    var coordinates = GXml.value(pointNode.getElementsByTagName("coordinates")[0]).split(',');
 
     // We do not want placemarks without coordinates
     if (coordinates == "")
@@ -98,40 +85,55 @@ KMLParser.prototype.makeMarkers = function(icon, markerHandler) {
     
     try {
         for(i = 0; i < placemarks.length; i++) {
-        	
+        	var placemarkNode = placemarks[i];
         	var mapItem = null;
+            
+            //Get the settings global to the placemark
+            var name = GXml.value(placemarkNode.getElementsByTagName("name")[0]);
+            var description = GXml.value(placemarkNode.getElementsByTagName("description")[0]);
+            
+            //Then extract the actual geometry for the placemark
+            var polygonList = placemarkNode.getElementsByTagName("Polygon");
+            var lineStringList = placemarkNode.getElementsByTagName("LineString");
+            var pointList = placemarkNode.getElementsByTagName("Point");
         	
-        	//Parse a polygon
-        	if (placemarks[i].getElementsByTagName("Polygon").length > 0) {
-        		mapItem = this.parsePolygon(placemarks[i]);
-        		if (mapItem == null)
-        			continue;
-        		
-        		//if there are some custom properties that need to be set
+        	//Now parse the geometry
+            //Parse any polygons
+            for (var j = 0; j < polygonList.length; j++) {
+            	mapItem = this.parsePolygon(name, description, polygonList[j]);
+                if (mapItem == null)
+                    return;
+
                 if(markerHandler)
                     markerHandler(mapItem);
 
                 this.overlays.push(mapItem);
-        	} else if (placemarks[i].getElementsByTagName("LineString").length > 0) {
-        		mapItem = this.parseLineString(placemarks[i]);
-        		if (mapItem == null)
-        			continue;
-        		
-        		if(markerHandler)
+        	}
+            
+            //Parse any lineStrings
+            for (var j = 0; i < lineStringList.length; j++) {
+            	mapItem = this.parseLineString(name, description, lineStringList[j]);
+                if (mapItem == null)
+                    return;
+
+                if(markerHandler)
                     markerHandler(mapItem);
 
                 this.overlays.push(mapItem);
-        	} else { //otherwise we parse a point
-        		mapItem = this.parsePoint(icon, placemarks[i]);
-        		if (mapItem == null)
-        			continue;
-        		
-        		//if there are some custom properties that need to be set
+        	}
+            
+            //Parse any points
+            for (var j = 0; j < pointList.length; j++) {
+            	mapItem = this.parsePoint(name, description, icon, pointList[j]);
+                if (mapItem == null)
+                    return;
+
                 if(markerHandler)
                     markerHandler(mapItem);
 
                 this.markers.push(mapItem);
         	}
+            
         }
     } catch(e) {alert(e);}
 
