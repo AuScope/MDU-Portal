@@ -61,12 +61,12 @@ public class TestGmlToKml {
 		Assert.assertTrue(convertedText.length() > 0);
 		
 		//Pull the converted data back as XML (It is now technically KML)
-		 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 	        factory.setNamespaceAware(false); // never forget this!
 	        DocumentBuilder builder = factory.newDocumentBuilder();
 	        InputSource inputSource = new InputSource(new StringReader(convertedText));
 	        Document document = builder.parse(inputSource);
-        Element root = document.getDocumentElement();
+	        Element root = document.getDocumentElement();
         
 		//Lets query the transformed data to make sure its correct 
 		XPath xPath = XPathFactory.newInstance().newXPath();
@@ -77,7 +77,7 @@ public class TestGmlToKml {
 		counter = (Double) xPath.evaluate("count(Document/Placemark)", root, XPathConstants.NUMBER);
 		Assert.assertEquals(8.0, counter.doubleValue(),0);
 		
-		counter = (Double) xPath.evaluate("count(Document/Placemark/Point/Style/IconStyle/Icon/href)", root, XPathConstants.NUMBER);
+		counter = (Double) xPath.evaluate("count(Document/Placemark/MultiGeometry/Point/Style/IconStyle/Icon/href)", root, XPathConstants.NUMBER);
 		Assert.assertEquals(8.0, counter.doubleValue(),0);
 	}
 }
