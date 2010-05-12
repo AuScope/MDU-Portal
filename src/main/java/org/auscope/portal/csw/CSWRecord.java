@@ -1,6 +1,8 @@
 package org.auscope.portal.csw;
 
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
@@ -31,32 +33,19 @@ public class CSWRecord {
     public CSWRecord(Node node) throws XPathExpressionException {
 
         XPath xPath = XPathFactory.newInstance().newXPath();
+        Node tempNode = null;
+        NodeList tempNodeList = null;
         xPath.setNamespaceContext(new CSWNamespaceContext());
+        
 
         String serviceTitleExpression = "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString";
-        Node tempNode = (Node)xPath.evaluate(serviceTitleExpression, node, XPathConstants.NODE);
+        tempNode = (Node)xPath.evaluate(serviceTitleExpression, node, XPathConstants.NODE);
         serviceName = tempNode != null ? tempNode.getTextContent() : "";
 
         String dataIdentificationAbstractExpression = "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString";
         tempNode = (Node)xPath.evaluate(dataIdentificationAbstractExpression, node, XPathConstants.NODE);
         dataIdentificationAbstract = tempNode != null ? tempNode.getTextContent() : "";
 
-        String serviceUrleExpression = "gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:linkage/gmd:URL";
-        tempNode = (Node)xPath.evaluate(serviceUrleExpression, node, XPathConstants.NODE);
-        serviceUrl = tempNode != null ? tempNode.getTextContent() : "";
-
-        String onlineResourceNameExpression = "gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:name/gco:CharacterString";
-        tempNode = (Node)xPath.evaluate(onlineResourceNameExpression, node, XPathConstants.NODE);
-        onlineResourceName = tempNode != null ? tempNode.getTextContent() : "";
-
-        String onlineResourceDescriptionExpression = "gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:description/gco:CharacterString";
-        tempNode = (Node)xPath.evaluate(onlineResourceDescriptionExpression, node, XPathConstants.NODE);
-        onlineResourceDescription = tempNode != null ? tempNode.getTextContent() : "";
-
-        String onlineResourceProtocolExpression = "gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:protocol/gco:CharacterString";
-        tempNode = (Node)xPath.evaluate(onlineResourceProtocolExpression, node, XPathConstants.NODE);
-        onlineResourceProtocol = tempNode != null ? tempNode.getTextContent() : "";
-        
         String contactOrganisationExpression = "gmd:contact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString";
         tempNode = (Node)xPath.evaluate(contactOrganisationExpression, node, XPathConstants.NODE);
         contactOrganisation = tempNode != null ? tempNode.getTextContent() : "";
@@ -64,6 +53,42 @@ public class CSWRecord {
         String fileIdentifierExpression = "gmd:fileIdentifier/gco:CharacterString";
         tempNode = (Node)xPath.evaluate(fileIdentifierExpression, node, XPathConstants.NODE);
         fileIdentifier = tempNode != null ? tempNode.getTextContent() : "";
+        
+        //There can be multiple gmd:onLine elements (which contain a number of fields we want), take the first one that can be treated as WMS/WFS
+        String onlineTransfersExpression = "gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine";
+        String serviceUrlExpression = "gmd:CI_OnlineResource/gmd:linkage/gmd:URL";
+        String onlineResourceProtocolExpression = "gmd:CI_OnlineResource/gmd:protocol/gco:CharacterString";
+        String onlineResourceNameExpression = "gmd:CI_OnlineResource/gmd:name/gco:CharacterString";
+        String onlineResourceDescriptionExpression = "gmd:CI_OnlineResource/gmd:description/gco:CharacterString";
+        serviceUrl = "";
+        onlineResourceProtocol = "";
+        onlineResourceName = "";
+        onlineResourceDescription  = "";
+        tempNodeList = (NodeList)xPath.evaluate(onlineTransfersExpression, node, XPathConstants.NODESET);
+        for (int i = 0; i < tempNodeList.getLength(); i++) {
+        	Node onlineNode = tempNodeList.item(i);
+        	
+        	//The current (bad) strategy is to find the first onlineResourceProtocol that contains the text "wms" or "wfs" 
+        	tempNode = (Node)xPath.evaluate(onlineResourceProtocolExpression, onlineNode, XPathConstants.NODE);
+        	String recordTypeString = (tempNode == null || tempNode.getTextContent() == null) ? "" : tempNode.getTextContent().toLowerCase();   
+        	if (recordTypeString.contains("wms") ||
+        		recordTypeString.contains("wfs")) {
+        
+        		tempNode = (Node)xPath.evaluate(onlineResourceProtocolExpression, onlineNode, XPathConstants.NODE);
+                onlineResourceProtocol = tempNode != null ? tempNode.getTextContent() : "";
+                
+                tempNode = (Node)xPath.evaluate(onlineResourceNameExpression, onlineNode, XPathConstants.NODE);
+                onlineResourceName = tempNode != null ? tempNode.getTextContent() : "";
+
+                tempNode = (Node)xPath.evaluate(onlineResourceDescriptionExpression, onlineNode, XPathConstants.NODE);
+                onlineResourceDescription = tempNode != null ? tempNode.getTextContent() : "";
+                
+                tempNode = (Node)xPath.evaluate(serviceUrlExpression, onlineNode, XPathConstants.NODE);
+                serviceUrl = tempNode != null ? tempNode.getTextContent() : "";
+                
+                break;
+        	}
+        }
     }
 
     public void setRecordInfoUrl(String recordInfoUrl) {
