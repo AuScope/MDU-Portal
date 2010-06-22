@@ -791,7 +791,7 @@ Ext.onReady(function() {
                         for (i = 0; i < serviceUrls.length; i++) {
                             //urlsParameter += "serviceUrls=" + serviceUrls[i] + filterParameters.replace('&', '%26') + '&';
                             keys[i] = 'serviceUrls';
-                            values[i] =  window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + record.get('proxyFetchRecordURL') + "?" + filterParameters + "&serviceUrl=" + serviceUrls[i];
+                            values[i] =  window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + record.get('proxyURL') + "?" + filterParameters + "&serviceUrl=" + serviceUrls[i];
                         }
 
                         openWindowWithPost("downloadGMLAsZip.do?", 'WFS_Layer_Download_'+new Date().getTime(), keys, values);
