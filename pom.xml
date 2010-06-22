@@ -5,7 +5,7 @@
     <groupId>org.auscope.portal</groupId>
     <artifactId>MDU-Portal</artifactId>
     <packaging>war</packaging>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <name>MDU-Portal Maven Webapp</name>
     <url>http://maven.apache.org</url>
     <scm>
@@ -223,7 +223,7 @@
             <artifactId>gt-wms</artifactId>
             <version>${geotools.version}</version>
         </dependency>
-        <!-- 
+        <!--
         <dependency>
             <groupId>xalan</groupId>
             <artifactId>xalan</artifactId>
@@ -234,7 +234,7 @@
             <groupId>net.sf.saxon</groupId>
             <artifactId>saxon-xom</artifactId>
             <version>8.7</version>
-        </dependency> 
+        </dependency>
         <dependency>
             <groupId>RestProxy</groupId>
             <artifactId>RestProxy</artifactId>
