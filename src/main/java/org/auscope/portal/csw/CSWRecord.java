@@ -130,4 +130,21 @@ public class CSWRecord {
     public String getDataIdentificationAbstract() {
         return dataIdentificationAbstract;
     }
+    
+    public String toString() {
+        StringBuffer buf = new StringBuffer();
+        buf.append(serviceName);
+        buf.append(",");
+        buf.append(serviceUrl);
+        buf.append(",");
+        buf.append(onlineResourceName);
+        buf.append(",");
+        buf.append(onlineResourceDescription);
+        buf.append(",");
+        buf.append(onlineResourceProtocol);
+        buf.append(",");
+        buf.append(dataIdentificationAbstract);
+        buf.append(",");
+        return buf.toString(); 
+    }
 }

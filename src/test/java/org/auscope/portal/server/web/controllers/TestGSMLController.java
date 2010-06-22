@@ -1,5 +1,23 @@
 package org.auscope.portal.server.web.controllers;
 
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethodBase;
+
+import org.auscope.portal.server.util.GmlToKml;
+import org.auscope.portal.server.web.service.HttpServiceCaller;
+
+import org.jmock.Expectations;
+import org.jmock.Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.Assert;
@@ -15,6 +33,8 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Map;
@@ -52,6 +72,21 @@ public class TestGSMLController {
      * Mock response
      */
     private HttpServletResponse mockHttpResponse = context.mock(HttpServletResponse.class);
+    
+    /**
+     * Mock request
+     */
+    private HttpServletRequest mockHttpRequest = context.mock(HttpServletRequest.class);
+    
+    /**
+     * Mock session
+     */
+    private HttpSession mockHttpSession = context.mock(HttpSession.class);
+    
+    /**
+     * Mock session
+     */
+    private ServletContext mockServletContext = context.mock(ServletContext.class);
 
     @Before
     public void setup() {
@@ -70,10 +105,14 @@ public class TestGSMLController {
             oneOf(httpServiceCaller).getHttpClient();
             oneOf(httpServiceCaller).getMethodResponseAsString(with(any(HttpMethodBase.class)), with(any(HttpClient.class)));
 
-            oneOf(gmlToKml).convert(with(any(String.class)), with(any(HttpServletRequest.class)));will(returnValue(kmlBlob));
+            oneOf(gmlToKml).convert(with(any(String.class)), with(any(InputStream.class)),with(any(String.class)));will(returnValue(kmlBlob));
+            
+            oneOf(mockHttpRequest).getSession();will(returnValue(mockHttpSession));
+            oneOf(mockHttpSession).getServletContext();will(returnValue(mockServletContext));
+            oneOf(mockServletContext).getResourceAsStream(with(any(String.class))); will(returnValue(null));
         }});
 
-        ModelAndView modelAndView = gsmlController.requestAllFeatures("fake", "fake", null);
+        ModelAndView modelAndView = gsmlController.requestAllFeatures("fake", "fake", mockHttpRequest);
 
         //check that the kml blob has been put ont he model
         Assert.assertEquals(kmlBlob, ((Map)modelAndView.getModel().get("data")).get("kml"));
@@ -84,15 +123,20 @@ public class TestGSMLController {
     public void testRequestFeature() throws Exception {
         final String kmlBlob = "kmlBlob";
         
+        //httpRequest.getSession().getServletContext().getResourceAsStream("/WEB-INF/xsl/kml.xsl");
 
         context.checking(new Expectations() {{
             oneOf(httpServiceCaller).getHttpClient();
             oneOf(httpServiceCaller).getMethodResponseAsString(with(any(HttpMethodBase.class)), with(any(HttpClient.class)));
 
-            oneOf(gmlToKml).convert(with(any(String.class)), with(any(HttpServletRequest.class)));will(returnValue(kmlBlob));
+            oneOf(gmlToKml).convert(with(any(String.class)), with(any(InputStream.class)), with(any(String.class)));will(returnValue(kmlBlob));
+            
+            oneOf(mockHttpRequest).getSession();will(returnValue(mockHttpSession));
+            oneOf(mockHttpSession).getServletContext();will(returnValue(mockServletContext));
+            oneOf(mockServletContext).getResourceAsStream(with(any(String.class))); will(returnValue(null));
         }});
 
-        ModelAndView modelAndView = gsmlController.requestFeature("fake","fake", "fake",null);
+        ModelAndView modelAndView = gsmlController.requestFeature("fake","fake", "fake", mockHttpRequest);
 
         //check that the kml blob has been put ont he model
         Assert.assertEquals(kmlBlob, ((Map)modelAndView.getModel().get("data")).get("kml"));
@@ -130,7 +174,7 @@ public class TestGSMLController {
             oneOf(httpServiceCaller).getHttpClient();
             oneOf(httpServiceCaller).getMethodResponseAsString(with(any(HttpMethodBase.class)), with(any(HttpClient.class)));
 
-            oneOf(gmlToKml).convert(with(any(String.class)), with(any(HttpServletRequest.class)));will(returnValue(kmlBlob));
+            oneOf(gmlToKml).convert(with(any(String.class)), with(any(InputStream.class)),with(any(String.class)));will(returnValue(kmlBlob));
             oneOf(mockHttpResponse).getWriter();will(returnValue(new PrintWriter(responseString)));
         }});
 

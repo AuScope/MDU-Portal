@@ -1,8 +1,8 @@
 package org.auscope.portal.server.web.security;
 
-import org.springframework.security.GrantedAuthority;
-import org.springframework.security.GrantedAuthorityImpl;
-import org.springframework.security.userdetails.User;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.userdetails.User;
 
 /**
  * Simple wrapper for the User class which just adds an easier to use constructor

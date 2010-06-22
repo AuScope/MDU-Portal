@@ -45,16 +45,17 @@ public class TestGmlToKml {
             oneOf(propertyConfigurer).resolvePlaceholder(with(any(String.class)));will(returnValue(serviceUrl));
         }});
         
-        gmlToKml.setHostConfigurer(propertyConfigurer);
+        
 	}
 	
 	@Test
 	public void testGenericFeatureParser() throws Exception {
 		String testXml = org.auscope.portal.Util.loadXML("src/test/resources/GetUndefinedFeatureSet.xml");
+		String serviceUrl = "http://foo.bar.com";
 		InputStream inputStream = new FileInputStream("src/main/webapp/WEB-INF/xsl/kml.xsl");
 		
 		
-		String convertedText = gmlToKml.convert(testXml, inputStream);
+		String convertedText = gmlToKml.convert(testXml, inputStream, serviceUrl);
 		
 		//Check we have data
 		Assert.assertNotNull(convertedText);

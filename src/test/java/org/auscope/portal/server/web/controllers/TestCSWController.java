@@ -1,30 +1,29 @@
 package org.auscope.portal.server.web.controllers;
 
-import org.junit.Test;
-import org.junit.Before;
-import org.junit.Assert;
-import org.jmock.Mockery;
-import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.auscope.portal.server.web.service.CSWService;
-import org.auscope.portal.server.web.service.HttpServiceCaller;
-import org.auscope.portal.server.web.KnownFeatureTypeDefinition;
-import org.auscope.portal.server.util.PortalPropertyPlaceholderConfigurer;
-import org.auscope.portal.csw.CSWThreadExecutor;
-import org.auscope.portal.csw.CSWRecord;
-import org.springframework.web.servlet.ModelAndView;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+
+import org.auscope.portal.csw.CSWRecord;
+import org.auscope.portal.server.util.PortalPropertyPlaceholderConfigurer;
+import org.auscope.portal.server.web.KnownFeatureTypeDefinition;
+import org.auscope.portal.server.web.service.CSWService;
+import org.jmock.Expectations;
+import org.jmock.Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * User: Mathew Wyatt
  * Date: 27/08/2009
- * Time: 10:43:35 AM
+ * @version $Id$
  */
 public class TestCSWController {
 
@@ -48,7 +47,8 @@ public class TestCSWController {
     /**
     * Mock KnownTypes arraylist
     */
-    private ArrayList knownTypes = context.mock(ArrayList.class);
+    @SuppressWarnings("unchecked")
+    private ArrayList<KnownFeatureTypeDefinition> knownTypes = context.mock(ArrayList.class);
 
     /**
      * The controller
@@ -165,7 +165,7 @@ public class TestCSWController {
     
     @Test
     public void testGetComplexFeatures() throws Exception {
-    	final String orgName = "testOrg";
+        final String orgName = "testOrg";
     	final String expectedInfoUrl = "http://infourl";
         final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4", "5");
         final String expectedJSONResponse = "[[\"1\",\"2 Institutions: " + orgName + ", \",[\"" + orgName +  "\"],\"3\",\"4\",[\"" + expectedInfoUrl + "\"],\"wfs\","+def.hashCode()+",\"0\",[\"\"],\"true\",\"<img src='js/external/extjs/resources/images/default/grid/done.gif'>\",\"<img width='16' heigh='16' src='5'>\",\"5\",\"<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/page_code.png'><\\/a>\"]]";
@@ -256,7 +256,8 @@ public class TestCSWController {
     public void testGetComplexFeaturesNoServices() throws Exception {
         final KnownFeatureTypeDefinition def = new KnownFeatureTypeDefinition("0", "1", "2", "3", "4", "5");
         final String expectedJSONResponse = "[]";
-        final Iterator mockIterator = context.mock(Iterator.class);
+        @SuppressWarnings("unchecked")
+        final Iterator<KnownFeatureTypeDefinition> mockIterator = context.mock(Iterator.class);
         final StringWriter actualJSONResponse = new StringWriter();
 
         context.checking(new Expectations() {{
@@ -295,10 +296,9 @@ public class TestCSWController {
      */
     @Test
     public void testGetWMSLayers() throws Exception {
-    	final String orgName = "testOrg";
+        final String orgName = "testOrg";
         final CSWRecord mockRecord = context.mock(CSWRecord.class);
-        final String expectedJSONResponse = "[[\"\",\"\",\"" + orgName + "\",\"\",\"wms\","+mockRecord.hashCode()+",\"\",[\"\"],\"true\",\"<img src='js/external/extjs/resources/images/default/grid/done.gif'>\",\"<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/picture_link.png'><\\/a>\"]]";
-        final Iterator mockIterator = context.mock(Iterator.class);
+        final String expectedJSONResponse = "[[\"\",\"\",\"" + orgName + "\",\"\",\"wms\","+mockRecord.hashCode()+",\"\",[\"\"],true,\"<img src='js/external/extjs/resources/images/default/grid/done.gif'>\",\"<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/picture_link.png'><\\/a>\",\"1.0\"]]";
         final StringWriter actualJSONResponse = new StringWriter();
 
         context.checking(new Expectations() {{
@@ -325,7 +325,7 @@ public class TestCSWController {
         //check that our JSON response has been nicely populated
         //calling the renderer will write the JSON to our mocks
         modelAndView.getView().render(modelAndView.getModel(), mockHttpRequest, mockHttpResponse);
-
+        
         //check that the actual is the expected
         if(expectedJSONResponse.equals(actualJSONResponse.getBuffer().toString()))
             Assert.assertTrue(true);

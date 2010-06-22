@@ -3,9 +3,7 @@ package org.auscope.portal.server.web.security;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
-
-import org.springframework.security.ui.FilterChainOrder;
-import org.springframework.security.ui.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 /**
  * This AbstractPreAuthenticatedProcessingFilter implementation 
@@ -67,8 +65,9 @@ public class PreAuthenticatedProcessingFilter
       // no password - user is already authenticated
       return "NONE";
    }
-   
+/*
    public int getOrder() {
       return FilterChainOrder.PRE_AUTH_FILTER;
-   }   
+   }
+*/
 }

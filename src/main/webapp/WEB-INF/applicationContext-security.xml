@@ -4,9 +4,9 @@
        	 xmlns:beans="http://www.springframework.org/schema/beans"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://www.springframework.org/schema/beans 
-                             http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+                             http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
                              http://www.springframework.org/schema/security 
-                             http://www.springframework.org/schema/security/spring-security-2.0.4.xsd">
+                             http://www.springframework.org/schema/security/spring-security-3.0.xsd">
    
    
 
@@ -37,15 +37,17 @@
  
  	
  	<!-- The following is pre authentication for usage with Shibboleth -->
- 	<beans:bean id="entryPoint" 
-            class="org.springframework.security.ui.preauth.PreAuthenticatedProcessingFilterEntryPoint" >
-   </beans:bean>
+ 	<beans:bean id="entryPoint"
+        class="org.springframework.security.web.authentication.Http403ForbiddenEntryPoint" >
+    </beans:bean>
                                     
-   <http auto-config="false" entry-point-ref="entryPoint" session-fixation-protection="none" access-denied-page="/access_error.html">
+   <http auto-config="false" entry-point-ref="entryPoint" access-denied-page="/access_error.html">
       <intercept-url pattern="/admin.html" access="ROLE_ADMINISTRATOR" />
       <intercept-url pattern="/**" filters="none" />
       <s:anonymous/>
       <!-- <s:logout logout-success-url="/gmap.html"/> -->
+      <session-management session-fixation-protection="none" />
+      
       <s:logout logout-success-url="/ShibLogout"/>
    </http>
 
@@ -64,22 +66,22 @@
    	  	</beans:constructor-arg>
    </beans:bean>
    
-   <authentication-provider user-service-ref="portalUserDetailsService"/>
+   
  
-   <authentication-manager alias="authenticationManager" />
+   <authentication-manager alias="authenticationManager" >
+        <authentication-provider user-service-ref="portalUserDetailsService"/>
+   </authentication-manager>
    
    <beans:bean id="preAuthenticatedProcessingFilter" 
             class="org.auscope.portal.server.web.security.PreAuthenticatedProcessingFilter">
-      <custom-filter position="PRE_AUTH_FILTER"/>
       <beans:property name="authenticationManager" ref="authenticationManager" />
    </beans:bean>
 
    <beans:bean id="preAuthenticatedAuthenticationProvider" 
-            class="org.springframework.security.providers.preauth.PreAuthenticatedAuthenticationProvider">
-      <custom-authentication-provider />
+            class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
       <beans:property name="preAuthenticatedUserDetailsService">
          <beans:bean id="userDetailsServiceWrapper"   
-                  class="org.springframework.security.userdetails.UserDetailsByNameServiceWrapper">
+                  class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
             <beans:property name="userDetailsService" ref="portalUserDetailsService"/>
          </beans:bean>
       </beans:property>

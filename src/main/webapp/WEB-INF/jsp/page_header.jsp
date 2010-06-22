@@ -25,4 +25,6 @@
             </security:authorize>
          </ul>
       </div>
+      
+      <span id="latlng" class="input-text"></span>
    </div>

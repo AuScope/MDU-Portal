@@ -8,46 +8,57 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.auscope.portal.mineraloccurrence.Commodity;
-import org.auscope.portal.mineraloccurrence.CommodityFilter;
 import org.auscope.portal.mineraloccurrence.Mine;
 import org.auscope.portal.mineraloccurrence.MineFilter;
 import org.auscope.portal.mineraloccurrence.MineralOccurrenceFilter;
 import org.auscope.portal.mineraloccurrence.MineralOccurrencesResponseHandler;
 import org.auscope.portal.mineraloccurrence.MiningActivityFilter;
 import org.auscope.portal.server.web.IWFSGetFeatureMethodMaker;
-import org.auscope.portal.server.web.WFSGetFeatureMethodMakerPOST;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * A utility class which provides methods for querying a mineral occurrence service
+ * Manages mineral occurrence queries
  *
  * @version $Id$
  */
 @Service
 public class MineralOccurrenceService {
-   
+
+    // -------------------------------------------------------------- Constants
+    
     protected final Log log = LogFactory.getLog(getClass());
+    
+    // ----------------------------------------------------- Instance variables
     
     private HttpServiceCaller httpServiceCaller;
     private MineralOccurrencesResponseHandler mineralOccurrencesResponseHandler;
     private IWFSGetFeatureMethodMaker methodMaker;
 
-    /**
-     * Initialise
-     */
+    
+    // ----------------------------------------------------------- Constructors
+
+/*
     public MineralOccurrenceService() {
+log.info(".......default C'tor");
         this.httpServiceCaller = new HttpServiceCaller();
         this.mineralOccurrencesResponseHandler = new MineralOccurrencesResponseHandler();
         this.methodMaker = new WFSGetFeatureMethodMakerPOST();
     }
-
-    public MineralOccurrenceService(HttpServiceCaller httpServiceCaller, MineralOccurrencesResponseHandler mineralOccurrencesResponseHandler, IWFSGetFeatureMethodMaker methodMaker) {
+*/
+    @Autowired
+    public MineralOccurrenceService( HttpServiceCaller httpServiceCaller,                                      
+                                     MineralOccurrencesResponseHandler respHandler, 
+                                     IWFSGetFeatureMethodMaker methodMaker ) {
         this.httpServiceCaller = httpServiceCaller;
-        this.mineralOccurrencesResponseHandler = mineralOccurrencesResponseHandler;
+        this.mineralOccurrencesResponseHandler = respHandler;
         this.methodMaker = methodMaker;
     }
 
+    
+    // ------------------------------------------- Property Setters and Getters 
+    
     /**
      * Get all the mines from a given service url and return them as Mine objects
      *
@@ -66,6 +77,7 @@ public class MineralOccurrenceService {
         return mines;
     }
 
+    
     /**
      * Get all the mines from a given service url and return the response
      * @param serviceURL
@@ -80,6 +92,7 @@ public class MineralOccurrenceService {
         return httpServiceCaller.getMethodResponseAsString(method, httpServiceCaller.getHttpClient());
     }
 
+    
     /**
      * Given a specific service and a mineName, get that mine from the service
      * @param  serviceURL - the service to get the mine from
@@ -97,6 +110,7 @@ public class MineralOccurrenceService {
         return mines;
     }
 
+    
     /**
      * Given a specific service and a mineName, get that mine from the service
      *
@@ -118,39 +132,7 @@ public class MineralOccurrenceService {
         return httpServiceCaller.getMethodResponseAsString(method, httpServiceCaller.getHttpClient());
     }
 
-    
-    /**
-     * Returns commodities based on a given service and commodityName
-     *
-     * If commodityName is an empty strings a GetALL query will be run
-     *
-     * @param serviceURL
-     * @param commodityName
-     * @return
-     */
-    public Collection<Commodity> getCommodity(String serviceURL, String commodityName) throws Exception {
-        //httpclient method
-        HttpMethodBase method = null;
-
-        // If we don't have a name, then just get all of them
-        if (commodityName.equals("")) {
-            method = methodMaker.makeMethod(serviceURL, "er:Commodity", "");
-        } else {
-            // Create the filter to append to the url
-            CommodityFilter commodityFilter = new CommodityFilter(commodityName);
-            log.debug(serviceURL + "\n" + commodityFilter.getFilterString());
-            
-            //create a GetFeature request with filter constraints on a query
-            method = methodMaker.makeMethod(serviceURL, "er:Commodity", commodityFilter.getFilterString());
-        }
-
-        //call the service, and get all the commodities
-        String commodityResponse = httpServiceCaller.getMethodResponseAsString(method, httpServiceCaller.getHttpClient());
-
-        //parse the commodities and return them
-        return this.mineralOccurrencesResponseHandler.getCommodities(commodityResponse);
-    }
-
+        
     /**
      * Given a list of parameters, call a service and get the Mineral Occurrence GML
      * @param serviceURL
@@ -165,37 +147,21 @@ public class MineralOccurrenceService {
      * @return
      */
     public String getMineralOccurrenceGML( String serviceURL,
-            String commodityName,
-            String measureType,
-            String minOreAmount,
-            String minOreAmountUOM,
-            String minCommodityAmount,
-            String minCommodityAmountUOM,
-            String cutOffGrade,
-            String cutOffGradeUOM) throws Exception {
-
-        // Get the commodities, we need their URI's to do a min occ query
-        Collection<Commodity> commodities = this.getCommodity(serviceURL, commodityName);
-
-        //if there are no commodities we can't continue
-        //and return a valid response
-        if(commodities.size() == 0)
-            return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                   "<wfs:FeatureCollection numberOfFeatures=\"0\"" +
-                   "    xsi:schemaLocation=\"http://www.opengis.net/wfs\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:gml=\"http://www.opengis.net/gml\" xmlns:wfs=\"http://www.opengis.net/wfs\">" +
-                   "    <gml:featureMembers/>" +
-                   "</wfs:FeatureCollection>";
-
-        //create the mineral occurrence filter
+                                           Collection<Commodity> commodities, // String commodityName,
+                                           String measureType,
+                                           String minOreAmount,
+                                           String minOreAmountUOM,
+                                           String minCommodityAmount,
+                                           String minCommodityAmountUOM 
+                                         ) throws Exception {
+            
         MineralOccurrenceFilter mineralOccurrenceFilter 
             = new MineralOccurrenceFilter( commodities,
                                            measureType,
                                            minOreAmount,
                                            minOreAmountUOM,
                                            minCommodityAmount,
-                                           minCommodityAmountUOM,
-                                           cutOffGrade,
-                                           cutOffGradeUOM);
+                                           minCommodityAmountUOM );
 
         log.debug("\n" + serviceURL + "\n" + mineralOccurrenceFilter.getFilterString());
         
@@ -206,6 +172,7 @@ public class MineralOccurrenceService {
         return httpServiceCaller.getMethodResponseAsString(method, httpServiceCaller.getHttpClient());
     }
 
+    
     public String getMiningActivityGML( String serviceURL,
                                         List<Mine> mines,
                                         String startDate,
@@ -214,16 +181,15 @@ public class MineralOccurrenceService {
                                         String producedMaterial,
                                         String cutOffGrade,
                                         String production) throws Exception {
-        if(mines.size() == 0)
-                return "";
-        
+
         //create the filter
         MiningActivityFilter miningActivityFilter = new MiningActivityFilter(mines, startDate, endDate, oreProcessed, producedMaterial, cutOffGrade, production);
-        log.debug(serviceURL + "\n" + miningActivityFilter.getFilterString());
+
+        log.debug("Mining Activity query... \n url:" + serviceURL + "\n" + miningActivityFilter.getFilterString());
         
         //create the method
         HttpMethodBase method = methodMaker.makeMethod(serviceURL, "er:MiningActivity", miningActivityFilter.getFilterString());
-
+log.debug("After methodMaker.makeMethod");
         //run dat query
         return this.httpServiceCaller.getMethodResponseAsString(method, httpServiceCaller.getHttpClient());
     }

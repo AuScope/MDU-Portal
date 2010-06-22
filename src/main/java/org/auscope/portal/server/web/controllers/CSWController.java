@@ -343,10 +343,12 @@ public class CSWController {
 
             tableRow.add(serviceURLs);
 
-            tableRow.add("true");
+            tableRow.add(true);
             tableRow.add("<img src='js/external/extjs/resources/images/default/grid/done.gif'>");
+            
 
             tableRow.add("<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/picture_link.png'></a>");
+            tableRow.add("1.0");
 
             dataItems.add(tableRow);
         }

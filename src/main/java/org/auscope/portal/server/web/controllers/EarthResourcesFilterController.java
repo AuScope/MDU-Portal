@@ -1,8 +1,12 @@
 package org.auscope.portal.server.web.controllers;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +19,7 @@ import org.apache.commons.httpclient.ConnectTimeoutException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.auscope.portal.mineraloccurrence.Commodity;
 import org.auscope.portal.mineraloccurrence.Mine;
 import org.auscope.portal.mineraloccurrence.MineralOccurrencesResponseHandler;
 import org.auscope.portal.server.util.GmlToKml;
@@ -22,6 +27,7 @@ import org.auscope.portal.server.web.ErrorMessages;
 import org.auscope.portal.server.web.service.MineralOccurrenceService;
 import org.auscope.portal.server.web.service.NvclService;
 import org.auscope.portal.server.web.view.JSONModelAndView;
+import org.auscope.portal.server.web.service.CommodityService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -63,6 +69,7 @@ public class EarthResourcesFilterController {
     private MineralOccurrenceService mineralOccurrenceService;
     private NvclService nvclService;
     private GmlToKml gmlToKml;
+    private CommodityService commodityService;
 
     // ----------------------------------------------------------- Constructors
     
@@ -71,12 +78,14 @@ public class EarthResourcesFilterController {
         ( MineralOccurrencesResponseHandler mineralOccurrencesResponseHandler,
           MineralOccurrenceService mineralOccurrenceService,
           NvclService nvclService,
-          GmlToKml gmlToKml ) {
+          GmlToKml gmlToKml,
+          CommodityService commodityService) {
         
         this.mineralOccurrencesResponseHandler = mineralOccurrencesResponseHandler;
         this.mineralOccurrenceService = mineralOccurrenceService;
         this.nvclService = nvclService;
         this.gmlToKml = gmlToKml;
+        this.commodityService = commodityService;
     }
 
     // ------------------------------------------- Property Setters and Getters   
@@ -105,7 +114,7 @@ public class EarthResourcesFilterController {
             else
                 gmlBlob = this.mineralOccurrenceService.getMineWithSpecifiedNameGML(serviceUrl, mineName);
 
-            String kmlBlob =  gmlToKml.convert(gmlBlob, request);
+            String kmlBlob =  convertToKml(gmlBlob, request, serviceUrl);
             //log.debug(kmlBlob);
             
             //This failure test should be made a little bit more robust
@@ -131,47 +140,49 @@ public class EarthResourcesFilterController {
      * @param minOreAmountUOM
      * @param minCommodityAmount
      * @param minCommodityAmountUOM
-     * @param cutOffGrade
-     * @param cutOffGradeUOM
      * @param request                the HTTP client request
      * 
      * @return a WFS response converted into KML
      */
     @RequestMapping("/doMineralOccurrenceFilter.do")
     public ModelAndView doMineralOccurrenceFilter(
-            @RequestParam("serviceUrl")            String serviceUrl,
-            @RequestParam("commodityName")         String commodityName,
-            @RequestParam("measureType")           String measureType,
-            @RequestParam("minOreAmount")          String minOreAmount,
-            @RequestParam("minOreAmountUOM")       String minOreAmountUOM,
-            @RequestParam("minCommodityAmount")    String minCommodityAmount,
-            @RequestParam("minCommodityAmountUOM") String minCommodityAmountUOM,
-            @RequestParam("cutOffGrade")           String cutOffGrade,
-            @RequestParam("cutOffGradeUOM")        String cutOffGradeUOM,
-            HttpServletRequest request) {
+        @RequestParam(value="serviceUrl",            required=false) String serviceUrl,
+        @RequestParam(value="commodityName",         required=false) String commodityName,
+        @RequestParam(value="measureType",           required=false) String measureType,
+        @RequestParam(value="minOreAmount",          required=false) String minOreAmount,
+        @RequestParam(value="minOreAmountUOM",       required=false) String minOreAmountUOM,
+        @RequestParam(value="minCommodityAmount",    required=false) String minCommodityAmount,
+        @RequestParam(value="minCommodityAmountUOM", required=false) String minCommodityAmountUOM,
+        HttpServletRequest request) 
+    {
         try {
+            Collection<Commodity> commodities = new ArrayList<Commodity>();
+            
+            if (!commodityName.equals("")) {
+                commodities = this.commodityService.get(serviceUrl, commodityName);
+
+                // If there are 0 features then send nice message to the user
+                if (commodities.size() == 0)
+                    return makeModelAndViewFailure(ErrorMessages.NO_RESULTS);
+            }                        
 
             //get the mineral occurrences
             String mineralOccurrenceResponse 
                 = this.mineralOccurrenceService.getMineralOccurrenceGML
                                                       ( serviceUrl,
-                                                        commodityName,
+                                                        commodities, //commodityName,
                                                         measureType,
                                                         minOreAmount,
                                                         minOreAmountUOM,
                                                         minCommodityAmount,
-                                                        minCommodityAmountUOM,
-                                                        cutOffGrade,
-                                                        cutOffGradeUOM);
-
-            log.debug("mineralOccurrenceResponse");
+                                                        minCommodityAmountUOM );
 
             // If there are 0 features then send NO_RESULTS message to the user
             if (mineralOccurrencesResponseHandler.getNumberOfFeatures(mineralOccurrenceResponse) == 0)
                 return makeModelAndViewFailure(ErrorMessages.NO_RESULTS);
 
             //if everything is good then return the KML
-            return makeModelAndViewKML(gmlToKml.convert(mineralOccurrenceResponse, request), mineralOccurrenceResponse);
+            return makeModelAndViewKML(convertToKml(mineralOccurrenceResponse, request, serviceUrl), mineralOccurrenceResponse);
 
         } catch (Exception e) {
             return this.handleExceptionResponse(e);
@@ -204,28 +215,38 @@ public class EarthResourcesFilterController {
             @RequestParam("producedMaterial") String producedMaterial,
             @RequestParam("cutOffGrade")      String cutOffGrade,
             @RequestParam("production")       String production,
-            HttpServletRequest request) throws IOException, SAXException, XPathExpressionException, ParserConfigurationException 
+            HttpServletRequest request) 
+    throws IOException, SAXException, XPathExpressionException, ParserConfigurationException 
     {
         try {
-            List<Mine> mines;   
-
-            if (mineName.equals(ALL_MINES))
-                mines = this.mineralOccurrenceService.getAllMines(serviceUrl);
-            else
-                mines = this.mineralOccurrenceService.getMineWithSpecifiedName(serviceUrl, mineName);
-
-            //if there are 0 features then send nice message to the user
-            if (mines.size() == 0)
-                return makeModelAndViewFailure(ErrorMessages.NO_RESULTS);
+            List<Mine> mines = new ArrayList<Mine>();   
+           
+            if (!mineName.equals("")) {
+                mines = this.mineralOccurrenceService.getMineWithSpecifiedName
+                                                                    ( serviceUrl
+                                                                    , mineName);
+                
+                // If there are 0 features then send nice message to the user
+                if (mines.size() == 0)
+                    return makeModelAndViewFailure(ErrorMessages.NO_RESULTS);                    
+            }
 
             // Get the mining activities
-            String miningActivityResponse = this.mineralOccurrenceService.getMiningActivityGML(serviceUrl, mines, startDate, endDate, oreProcessed, producedMaterial, cutOffGrade, production);
-
+            String miningActivityResponse = 
+                this.mineralOccurrenceService.getMiningActivityGML( serviceUrl
+                                                                  , mines
+                                                                  , startDate
+                                                                  , endDate
+                                                                  , oreProcessed
+                                                                  , producedMaterial
+                                                                  , cutOffGrade
+                                                                  , production);
+            
             // If there are 0 features then send NO_RESULTS message to the user
             if (mineralOccurrencesResponseHandler.getNumberOfFeatures(miningActivityResponse) == 0)
                 return makeModelAndViewFailure(ErrorMessages.NO_RESULTS);
-
-            return makeModelAndViewKML(gmlToKml.convert(miningActivityResponse, request), miningActivityResponse);
+            
+            return makeModelAndViewKML(convertToKml(miningActivityResponse, request, serviceUrl), miningActivityResponse);
 
         } catch (Exception e) {
             return this.handleExceptionResponse(e);
@@ -247,7 +268,7 @@ public class EarthResourcesFilterController {
         try {
             String gmlBlob = this.nvclService.getAllBoreholes(serviceUrl);
 
-            String kmlBlob =  gmlToKml.convert(gmlBlob, request);
+            String kmlBlob = convertToKml(gmlBlob, request, serviceUrl);
             //log.debug(kmlBlob);
                 
             // This failure test should be more robust,
@@ -261,16 +282,6 @@ public class EarthResourcesFilterController {
             return this.handleExceptionResponse(e);
         }
     }    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     /**
      * Exception resolver that maps exceptions to views presented to the user
@@ -290,6 +301,10 @@ public class EarthResourcesFilterController {
         if(e instanceof ConnectTimeoutException) {
             return this.makeModelAndViewFailure(ErrorMessages.OPERATION_TIMOUT);
         }
+        
+        if(e instanceof SocketTimeoutException) {
+            return this.makeModelAndViewFailure(ErrorMessages.OPERATION_TIMOUT);
+        }        
 
         // An error we don't specifically handle or expect
         return makeModelAndViewFailure(ErrorMessages.FILTER_FAILED);
@@ -306,15 +321,13 @@ public class EarthResourcesFilterController {
      * @return ModelAndView JSON response object
      */
     private ModelAndView makeModelAndViewKML(final String kmlBlob, final String gmlBlob) {
-        final Map data = new HashMap() {{
-            put("kml", kmlBlob);
-            put("gml", gmlBlob);
-        }};
-
-        ModelMap model = new ModelMap() {{
-            put("success", true);
-            put("data", data);
-        }};
+        final Map<String,String> data = new HashMap<String,String>();
+        data.put("kml", kmlBlob);
+        data.put("gml", gmlBlob);
+        
+        ModelMap model = new ModelMap();
+        model.put("success", true);
+        model.put("data", data);
 
         return new JSONModelAndView(model);
     }
@@ -327,12 +340,22 @@ public class EarthResourcesFilterController {
      * @return
      */
     private ModelAndView makeModelAndViewFailure(final String message) {
-        ModelMap model = new ModelMap() {{
-            put("success", false);
-            put("msg", message);
-        }};
-
+        ModelMap model = new ModelMap();
+        model.put("success", false);
+        model.put("msg", message);                      
+  
         return new JSONModelAndView(model);
     }
-   
+    
+    
+    /**
+     * Assemble a call to convert GeoSciML into kml format 
+     * @param geoXML
+     * @param httpRequest
+     * @param serviceUrl
+     */
+    private String convertToKml(String geoXML, HttpServletRequest httpRequest, String serviceUrl) {
+        InputStream inXSLT = httpRequest.getSession().getServletContext().getResourceAsStream("/WEB-INF/xsl/kml.xsl");
+        return gmlToKml.convert(geoXML, inXSLT, serviceUrl);
+    }
 }

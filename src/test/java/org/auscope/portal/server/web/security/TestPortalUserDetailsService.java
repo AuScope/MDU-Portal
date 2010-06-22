@@ -1,6 +1,7 @@
 package org.auscope.portal.server.web.security;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import org.junit.Test;
 import org.junit.Before;
@@ -8,11 +9,11 @@ import org.junit.Assert;
 import org.jmock.Mockery;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.springframework.security.GrantedAuthority;
-import org.springframework.security.GrantedAuthorityImpl;
-import org.springframework.security.userdetails.User;
-import org.springframework.security.userdetails.UserDetails;
-import org.springframework.security.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 public class TestPortalUserDetailsService {
 	
@@ -59,9 +60,13 @@ public class TestPortalUserDetailsService {
 		Assert.assertNotNull(details);
 		Assert.assertEquals(userName, details.getUsername());
 		
-		GrantedAuthority[] authorityList = details.getAuthorities();
-		Assert.assertNotNull(authorityList);
-		Assert.assertArrayEquals(new GrantedAuthority[] {new GrantedAuthorityImpl(expectedRole)}, authorityList);
+		Collection<GrantedAuthority> authorityListCollection = details.getAuthorities();
+		Assert.assertNotNull(authorityListCollection);
+		
+		GrantedAuthority[] authorityArray = new GrantedAuthority[authorityListCollection.size()];
+		authorityArray = authorityListCollection.toArray(authorityArray);
+		
+		Assert.assertArrayEquals(new GrantedAuthority[] {new GrantedAuthorityImpl(expectedRole)}, authorityArray);
 	}
 	
 	@Test

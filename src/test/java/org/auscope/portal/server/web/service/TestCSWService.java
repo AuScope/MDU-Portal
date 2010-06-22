@@ -1,17 +1,19 @@
 package org.auscope.portal.server.web.service;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.Assert;
-import org.jmock.Mockery;
-import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.auscope.portal.csw.CSWThreadExecutor;
-import org.auscope.portal.server.util.Util;
-import org.auscope.portal.server.util.PortalPropertyPlaceholderConfigurer;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethodBase;
 
+import org.auscope.portal.csw.CSWThreadExecutor;
+import org.auscope.portal.server.util.PortalPropertyPlaceholderConfigurer;
+import org.auscope.portal.server.util.Util;
+
+import org.jmock.Expectations;
+import org.jmock.Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
@@ -19,11 +21,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
-
 /**
  * User: Mathew Wyatt
  * Date: 20/08/2009
- * Time: 12:05:48 PM
+ * @version $Id$
  */
 public class TestCSWService {
 	//determines the size of the test + congestion

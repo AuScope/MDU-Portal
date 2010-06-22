@@ -1,11 +1,10 @@
 package org.auscope.portal.csw;
 
-import org.apache.log4j.Logger;
-import org.springframework.stereotype.Repository;
-
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.springframework.stereotype.Repository;
 
 /**
  * A simple wrapper around a thread pool

@@ -31,6 +31,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import java.io.InputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Map;
@@ -216,7 +217,7 @@ public class GSMLController {
             }
         }.makeMethod(), serviceCaller.getHttpClient());
 
-         return makeModelAndViewKML(gmlToKml.convert(gmlResponse, request), gmlResponse);
+         return makeModelAndViewKML(convertToKml(gmlResponse, request, serviceUrl), gmlResponse);
     }
     
     /**
@@ -252,7 +253,7 @@ public class GSMLController {
             }
         }.makeMethod(), serviceCaller.getHttpClient());
 
-        return makeModelAndViewKML(gmlToKml.convert(gmlResponse, request), gmlResponse);
+        return makeModelAndViewKML(convertToKml(gmlResponse, request, serviceUrl), gmlResponse);
     }
 
     @RequestMapping("/xsltRestProxy.do")
@@ -263,7 +264,7 @@ public class GSMLController {
             String result = serviceCaller.getMethodResponseAsString(new GetMethod(serviceUrl), serviceCaller.getHttpClient());
 
             // Send response back to client
-            response.getWriter().println(gmlToKml.convert(result, request));
+            response.getWriter().println(convertToKml(result, request, serviceUrl));
         } catch (Exception e) {
             logger.error(e);
         }
@@ -286,5 +287,16 @@ public class GSMLController {
         }};
 
         return new JSONModelAndView(model);
+    }
+    
+    /**
+     * Assemble a call to convert GeoSciML into kml format 
+     * @param geoXML
+     * @param httpRequest
+     * @param serviceUrl
+     */
+    private String convertToKml(String geoXML, HttpServletRequest httpRequest, String serviceUrl) {
+        InputStream inXSLT = httpRequest.getSession().getServletContext().getResourceAsStream("/WEB-INF/xsl/kml.xsl");
+        return gmlToKml.convert(geoXML, inXSLT, serviceUrl);
     }
 }
