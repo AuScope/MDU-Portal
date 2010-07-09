@@ -28,7 +28,8 @@ Ext.onReady(function() {
             {   name: 'loadingStatus'   },
             {   name: 'iconImgSrc'      },
             {   name: 'iconUrl'         },
-            {   name: 'dataSourceImage' }
+            {   name: 'dataSourceImage' },
+            {   name: 'bboxes'			}
         ]),
         sortInfo: {field:'title', direction:'ASC'}
     });
@@ -51,6 +52,7 @@ Ext.onReady(function() {
             {   name: 'iconImgSrc'      },
             {   name: 'iconUrl'         },
             {   name: 'dataSourceImage' },
+            {   name: 'bboxes' 			}
         ]),
         sortInfo: {field:'title', direction:'ASC'}
     });
@@ -64,6 +66,28 @@ Ext.onReady(function() {
                 '<p>{description} </p><br>'
                 )
     });
+    
+    //Checks if the given bounding box is meaningful
+    //That is it will represent a bounding box that is useful for the end user to visualize
+    var isBBoxListMeaningful = function(bboxList) {
+    	if (!bboxList)
+    		return false;
+    	
+    	if (bboxList.length == 0) {
+    		return false;
+    	}
+    	
+    	var meaningful = false;
+    	for (var i = 0; i < bboxList.length && !meaningful; i++) {
+    		bbox = bboxList[i];
+    		
+    		//A bbox that covers the entire planet is not useful
+    		meaningful =!(bbox.eastBoundLongitude == 180 && bbox.northBoundLatitude == 90 &&
+    				bbox.southBoundLatitude == -90 && bbox.westBoundLongitude == -180);
+    	}
+    	
+    	return meaningful; 
+    };
 
     var complexFeaturesPanel = new Ext.grid.GridPanel({
         stripeRows       : true,
@@ -85,6 +109,22 @@ Ext.onReady(function() {
                 width: 80,
                 sortable: true,
                 dataIndex: 'title'
+            },{
+            	id:'search',
+            	header: '',
+            	width: 45,
+            	dataIndex: 'bboxes',
+            	resizable: false,
+            	menuDisabled: true,
+            	sortable: false,
+            	fixed: true,
+            	renderer: function (value) {
+            		//Only show the icon if we have a meaningful bounding box 
+            		if (isBBoxListMeaningful(value))
+            			return '<img src="img/magglass.gif"/>';
+            		else
+            			return '';
+            	}
             }
         ],
         bbar: [{
@@ -121,7 +161,7 @@ Ext.onReady(function() {
         stripeRows: true,
         autoExpandColumn: 'title',
         plugins: [complexFeaturesRowExpander],
-        viewConfig: {scrollOffset: 0},
+        viewConfig: {scrollOffset: 0, forceFit: true},
 
         title: 'Featured Layers',
         region:'north',
@@ -137,9 +177,25 @@ Ext.onReady(function() {
             {
                 id:'title',
                 header: "Title",
-                width: 160,
+                width: 120,
                 sortable: true,
                 dataIndex: 'title'
+            }, {
+            	id:'search',
+            	header: '',
+            	width: 45,
+            	dataIndex: 'bboxes',
+            	resizable: false,
+            	menuDisabled: true,
+            	sortable: false,
+            	fixed: true,
+            	renderer: function (value) {
+            		//Only show the icon if we have a meaningful bounding box 
+            		if (isBBoxListMeaningful(value))
+            			return '<img src="img/magglass.gif"/>';
+            		else
+            			return '';
+            	}
             }
         ],
         bbar: [
@@ -176,9 +232,8 @@ Ext.onReady(function() {
            ],
 
         stripeRows: true,
-        autoExpandColumn: 'title',
         plugins: [genericFeaturesRowExpander],
-        viewConfig: {scrollOffset: 0},
+        viewConfig: {scrollOffset: 0, forceFit: true},
 
         title: 'Generic Layers',
         region:'north',
@@ -203,7 +258,8 @@ Ext.onReady(function() {
             {   name: 'layerVisible'    },
             {   name: 'loadingStatus'   },
             {   name: 'dataSourceImage' },
-            {   name: 'opacity'         }
+            {   name: 'opacity'         },
+            {   name: 'bboxes' 			}
         ]),
         groupField:'contactOrg',
         sortInfo: {field:'title', direction:'ASC'}
@@ -238,6 +294,22 @@ Ext.onReady(function() {
                 sortable: true,
                 dataIndex: 'contactOrg',
                 hidden:true
+            }, {
+            	id:'search',
+            	header: '',
+            	width: 45,
+            	dataIndex: 'bboxes',
+            	resizable: false,
+            	menuDisabled: true,
+            	sortable: false,
+            	fixed: true,
+            	renderer: function (value) {
+            		//Only show the icon if we have a meaningful bounding box 
+            		if (isBBoxListMeaningful(value))
+            			return '<img src="img/magglass.gif"/>';
+            		else
+            			return '';
+            	}
             }
         ],
         bbar: [{
@@ -1108,5 +1180,70 @@ Ext.onReady(function() {
     complexFeaturesStore.load({toolbar:complexFeaturesPanel.getTopToolbar(), parentPanel:complexFeaturesPanel});
     genericFeaturesStore.load({toolbar:genericFeaturesPanel.getTopToolbar(), parentPanel:genericFeaturesPanel});
     wmsLayersStore.load({toolbar:wmsLayersPanel.getTopToolbar(), parentPanel:wmsLayersPanel});
+    
+    //Generates a bounding box polygon and puts it on the map for the given record
+    var showRecordBoundingBox = function (grid, rowIndex, colIndex, e) {
+    	var record = grid.getStore().getAt(rowIndex); 
+        var fieldName = grid.getColumnModel().getDataIndex(colIndex); 
+        if (fieldName !== 'bboxes') {
+        	return;
+        }
+    	
+    	var bboxes = record.get('bboxes');
+    	if (!isBBoxListMeaningful(bboxes)) {
+    		return;
+    	}
+    	
+    	if (record.bboxOverlayManager) {
+    		record.bboxOverlayManager.clearOverlays();
+    		record.bboxOverlayManager = null;
+    	}
+    	
+    	var overlayManager = new OverlayManager(map);
+    	record.bboxOverlayManager = overlayManager;
+    	
+    	for (var i = 0; i < bboxes.length; i++) {
+    		var bbox = bboxes[i];
+    	    var ne = new GLatLng(bbox.northBoundLatitude, bbox.eastBoundLongitude);
+    	    var se = new GLatLng(bbox.southBoundLatitude, bbox.eastBoundLongitude);
+    	    var sw = new GLatLng(bbox.southBoundLatitude, bbox.westBoundLongitude);
+    	    var nw = new GLatLng(bbox.northBoundLatitude, bbox.westBoundLongitude);
+    	    
+    	    var polygon = new GPolygon([sw, nw, ne, se],'#00GG00', undefined, 0.7,'#00FF00', 0.6);
+    	    polygon.description = 'bbox';
+    	    polygon.title = 'bbox';
+    	    
+    	    record.bboxOverlayManager.addOverlay(polygon);
+    	}
+    	
+    	record.bboxOverlayManager.markerManager.refresh();
+    	
+    	//Make the bbox disappear after a short while 
+    	if (!record.bboxOverlayClearTask) {
+	    	record.bboxOverlayClearTask = new Ext.util.DelayedTask(function(){
+	    		hideRecordBoundingBox(grid, rowIndex, colIndex, e);
+	    	});
+    	}
+
+    	record.bboxOverlayClearTask.delay(2000); 
+    };
+    
+    //Hides a bounding box polygon
+    var hideRecordBoundingBox = function (grid, rowIndex, colIndex, e) {
+    	var record = grid.getStore().getAt(rowIndex); 
+    		
+        if (record.bboxOverlayManager) {
+        	record.bboxOverlayManager.clearOverlays();
+        	record.bboxOverlayManager = null;
+        }
+        
+        record.bboxOverlayClearTask = null;
+    };
+    
+    
+    genericFeaturesPanel.on("cellclick", showRecordBoundingBox, genericFeaturesPanel);
+    complexFeaturesPanel.on("cellclick", showRecordBoundingBox, complexFeaturesPanel.on);
+    wmsLayersPanel.on("cellclick", showRecordBoundingBox, wmsLayersPanel);
+    
     
 });

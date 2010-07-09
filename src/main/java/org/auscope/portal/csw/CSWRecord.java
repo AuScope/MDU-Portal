@@ -25,6 +25,7 @@ public class CSWRecord {
     private String contactOrganisation;
     private String fileIdentifier;
     private String recordInfoUrl;
+    private CSWGeographicElement cswGeographicElement;
 
 
     private String dataIdentificationAbstract;
@@ -89,6 +90,15 @@ public class CSWRecord {
                 break;
         	}
         }
+        
+        //Parse our bounding box (if it exists). If it's unparsable, don't worry and just continue
+        String bboxExpression = "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox";
+        tempNode = (Node)xPath.evaluate(bboxExpression, node, XPathConstants.NODE);
+        if (tempNode != null) {
+            try {
+                cswGeographicElement = CSWGeographicBoundingBox.fromGeographicBoundingBoxNode(tempNode, xPath);
+            } catch (Exception ex) { }
+        }
     }
 
     public void setRecordInfoUrl(String recordInfoUrl) {
@@ -146,5 +156,21 @@ public class CSWRecord {
         buf.append(dataIdentificationAbstract);
         buf.append(",");
         return buf.toString(); 
+    }
+
+    /**
+     * Set the CSWGeographicElement that bounds this record
+     * @param cswGeographicElement (can be null)
+     */
+    public void setCSWGeographicElement(CSWGeographicElement cswGeographicElement) {
+        this.cswGeographicElement = cswGeographicElement;
+    }
+
+    /**
+     * gets the  CSWGeographicElement that bounds this record (or null if it DNE)
+     * @return
+     */
+    public CSWGeographicElement getCSWGeographicElement() {
+        return cswGeographicElement;
     }
 }

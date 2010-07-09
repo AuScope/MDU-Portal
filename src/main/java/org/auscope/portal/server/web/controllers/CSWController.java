@@ -116,6 +116,7 @@ public class CSWController {
         String servicesDescription = "Institutions: ";
         JSONArray serviceURLs = new JSONArray();
         JSONArray recordInfoURLs = new JSONArray();
+        JSONArray bboxes = new JSONArray();
 
         //if there are no services available for this feature type then don't show it in the portal
         if(records.length == 0)
@@ -128,6 +129,9 @@ public class CSWController {
 
             if (record.getRecordInfoUrl() != null && record.getRecordInfoUrl().length() > 0)
                 recordInfoURLs.add(record.getRecordInfoUrl());
+            
+            if (record.getCSWGeographicElement() != null)
+                bboxes.add(record.getCSWGeographicElement());
 
             //serviceURLs.add("http://www.gsv-tb.dpi.vic.gov.au/AuScope-MineralOccurrence/services");
             //serviceURLs.add("http://auscope-services.arrc.csiro.au/deegree-wfs/services");
@@ -167,6 +171,8 @@ public class CSWController {
 
         tableRow.add("<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/page_code.png'></a>");
         
+        tableRow.add(bboxes);
+        
         return tableRow;
     }
     
@@ -177,8 +183,8 @@ public class CSWController {
      * Returns a JSON response with a data structure like so
      *
      * [
-     * [title, description, [contactOrganisations], recordFetchURL, recordCountURL, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage],
-     * [title, description, [contactOrganisations], recordFetchURL, recordCountURL, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage]
+     * [title, description, [contactOrganisations], recordFetchURL, recordCountURL, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage, [bbox]],
+     * [title, description, [contactOrganisations], recordFetchURL, recordCountURL, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage, [bbox]]
      * ]
      *
      * @return
@@ -213,8 +219,8 @@ public class CSWController {
      * Returns a JSON response with a data structure like so
      *
      * [
-     * [title, description, [contactOrganisations], proxyRecordFetch, proxyRecordCount, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage],
-     * [title, description, [contactOrganisations], proxyRecordFetch, proxyRecordCount, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage]
+     * [title, description, [contactOrganisations], proxyRecordFetch, proxyRecordCount, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage, [bbox]],
+     * [title, description, [contactOrganisations], proxyRecordFetch, proxyRecordCount, [recordInfoURL], serviceType, id, typeName, [serviceURLs], checked, statusImage, markerIconHtml, markerIconUrl, dataSourceImage, [bbox]]
      * ]
      *
      * @return
@@ -349,6 +355,12 @@ public class CSWController {
 
             tableRow.add("<a href='http://portal.auscope.org' id='mylink' target='_blank'><img src='img/picture_link.png'></a>");
             tableRow.add("1.0");
+            
+            JSONArray bboxes = new JSONArray();
+            if (record.getCSWGeographicElement() != null)
+                bboxes.add(record.getCSWGeographicElement());
+            
+            tableRow.add(bboxes);
 
             dataItems.add(tableRow);
         }
