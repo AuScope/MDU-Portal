@@ -1240,10 +1240,45 @@ Ext.onReady(function() {
         record.bboxOverlayClearTask = null;
     };
     
+    //Moves the GMap portlet display to display the bounding box
+    var moveToBoundingBox = function (grid, rowIndex, colIndex, e) {
+    	var record = grid.getStore().getAt(rowIndex); 
+        var fieldName = grid.getColumnModel().getDataIndex(colIndex); 
+        if (fieldName !== 'bboxes') {
+        	return;
+        }
+    	
+    	var bboxes = record.get('bboxes');
+    	if (!isBBoxListMeaningful(bboxes)) {
+    		return;
+    	}
+    	
+    	//Problems : It doesn't take into account multiple bounding boxes
+    	//           It fails with bounding boxes spanning the anti-meridian (the layer centre fails).
+    	var bbox = bboxes[0];
+    	
+    	var sw = new GLatLng(bbox.southBoundLatitude, bbox.westBoundLongitude);
+    	var ne = new GLatLng(bbox.northBoundLatitude, bbox.eastBoundLongitude);
+    	var layerBounds = new GLatLngBounds(sw,ne);
+    	
+    	//Adjust zoom if required
+    	var visibleBounds = map.getBounds();
+    	map.setZoom(map.getBoundsZoomLevel(layerBounds));
+    	
+    	//Pan to position
+    	var layerCenter = layerBounds.getCenter();
+    	map.panTo(layerCenter);
+    	
+    	
+    	
+    };
     
     genericFeaturesPanel.on("cellclick", showRecordBoundingBox, genericFeaturesPanel);
     complexFeaturesPanel.on("cellclick", showRecordBoundingBox, complexFeaturesPanel.on);
     wmsLayersPanel.on("cellclick", showRecordBoundingBox, wmsLayersPanel);
     
+    genericFeaturesPanel.on("celldblclick", moveToBoundingBox, genericFeaturesPanel);
+    complexFeaturesPanel.on("celldblclick", moveToBoundingBox, complexFeaturesPanel);
+    wmsLayersPanel.on("celldblclick", moveToBoundingBox, wmsLayersPanel);
     
 });
