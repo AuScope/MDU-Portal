@@ -30,8 +30,10 @@ Ext.ux.form.ClientSearchField = Ext.extend(Ext.form.TwinTriggerField, {
         if(this.hasSearch){
         	this.store.clearFilter(false);
             this.triggers[0].hide();
+            this.triggers[1].show();
             this.hasSearch = false;
-            
+            this.setDisabled(false);
+            this.setValue('');
         }
     },
 
@@ -45,5 +47,22 @@ Ext.ux.form.ClientSearchField = Ext.extend(Ext.form.TwinTriggerField, {
         this.store.filter(this.fieldName, v, true, false);
         this.hasSearch = true;
         this.triggers[0].show();
+    },
+    
+    /**
+     * text : The text to include in the box (to indicate that a custom filter has been run)
+     * func : function(record, id) that should return true/false for each record it receives
+     */
+    runCustomFilter : function(text, func) {
+    	//Clear any existing filter
+    	this.onTrigger1Click();
+    	
+    	this.hasSearch = true;
+    	this.setValue(text);
+    	
+    	this.store.filterBy(func);
+    	this.triggers[0].show();
+    	this.triggers[1].hide();
+    	this.setDisabled(true);
     }
 });

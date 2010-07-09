@@ -88,6 +88,24 @@ Ext.onReady(function() {
     	
     	return meaningful; 
     };
+    
+    //Returns true if the current records intersects the GMap viewport (based on its bounding box)
+    //False otherwise
+    var visibleRecordsFilter = function(record) {
+    	var bboxList = record.get('bboxes');
+		if (!isBBoxListMeaningful(bboxList)) {
+			return false;
+		}
+		
+		var bbox = bboxList[0];
+    	
+    	var sw = new GLatLng(bbox.southBoundLatitude, bbox.westBoundLongitude);
+    	var ne = new GLatLng(bbox.northBoundLatitude, bbox.eastBoundLongitude);
+    	var layerBounds = new GLatLngBounds(sw,ne);
+    	
+    	var visibleBounds = map.getBounds();
+    	return visibleBounds.intersects(layerBounds);
+    };
 
     var complexFeaturesPanel = new Ext.grid.GridPanel({
         stripeRows       : true,
@@ -155,7 +173,14 @@ Ext.onReady(function() {
                    width:200,
                    id:'search-complex',
                    fieldName:'title'
-               })
+               }), {
+              	   	xtype:'button',
+               	   	text:'Visible',
+               	   	handler:function() {
+               	   		var searchPanel = Ext.getCmp('search-complex');
+               	   		searchPanel.runCustomFilter('<visible layers>', visibleRecordsFilter);
+                  		}
+               }
            ],
 
         stripeRows: true,
@@ -228,7 +253,14 @@ Ext.onReady(function() {
                    width:200,
                    id:'search-generic-panel',
                    fieldName:'title'
-               })
+               }), {
+            	   	xtype:'button',
+            	   	text:'Visible',
+            	   	handler:function() {
+            	   		var searchPanel = Ext.getCmp('search-generic-panel');
+            	   		searchPanel.runCustomFilter('<visible layers>', visibleRecordsFilter);
+               		}
+               }
            ],
 
         stripeRows: true,
@@ -344,7 +376,14 @@ Ext.onReady(function() {
                            width:200,
                            id:'search-wms',
                            fieldName:'title'
-                           })
+                           }), {
+                       	   	xtype:'button',
+                       	   	text:'Visible',
+                       	   	handler:function() {
+                       	   		var searchPanel = Ext.getCmp('search-wms');
+                       	   		searchPanel.runCustomFilter('<visible layers>', visibleRecordsFilter);
+                          		}
+                          }
                        ],
                        
                 stripeRows       : true,
@@ -1166,7 +1205,7 @@ Ext.onReady(function() {
     //new Ext.LoadMask(wmsLayersPanel.el, {msg: 'Please Wait...', store: wmsLayersStore});
 
   //This handler is for hiding the search bars upon record load 
-    var storeLoadFinishHandler = function (store, records, options) {
+    /*var storeLoadFinishHandler = function (store, records, options) {
     	if (records.length < searchBarThreshold) {
     		options.toolbar.hide();
     		options.parentPanel.doLayout(false,true);
@@ -1175,7 +1214,7 @@ Ext.onReady(function() {
     
     complexFeaturesStore.on('load',storeLoadFinishHandler);
     genericFeaturesStore.on('load',storeLoadFinishHandler);
-    wmsLayersStore.on('load',storeLoadFinishHandler);
+    wmsLayersStore.on('load',storeLoadFinishHandler);*/
     
     complexFeaturesStore.load({toolbar:complexFeaturesPanel.getTopToolbar(), parentPanel:complexFeaturesPanel});
     genericFeaturesStore.load({toolbar:genericFeaturesPanel.getTopToolbar(), parentPanel:genericFeaturesPanel});
