@@ -19,9 +19,9 @@ FeatureDownloadManager.prototype.downloadCancelledHandler = null;
 FeatureDownloadManager.prototype.featureSetSizeThreshold = 200;
 
 
-FeatureDownloadManager.prototype.handleDownloadFinish = function(data, responseCode) {
+FeatureDownloadManager.prototype.handleDownloadFinish = function(data, responseCode, boundingBox) {
 	if (responseCode == 200) {
-		this.downloadFinishedHandler(data, responseCode);
+		this.downloadFinishedHandler(data, responseCode, boundingBox);
     } else {
     	this.downloadErrorHandler(data, responseCode);
     }
@@ -35,7 +35,7 @@ FeatureDownloadManager.prototype.doDownload = function (boundingBox) {
 	
 	var callingInstance = this;
 	GDownloadUrl(url, function (data, responseCode) {
-		callingInstance.handleDownloadFinish(data, responseCode);
+		callingInstance.handleDownloadFinish(data, responseCode, boundingBox);
 	});
 }
 
