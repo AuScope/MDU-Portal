@@ -2,7 +2,8 @@ package org.auscope.portal.server.web.security;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 /**
@@ -17,7 +18,7 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 public class PreAuthenticatedProcessingFilter 
    extends AbstractPreAuthenticatedProcessingFilter {
 
-   protected final Logger logger = Logger.getLogger(getClass());
+	protected final Log logger = LogFactory.getLog(getClass());
    
    protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
       java.util.Enumeration eHeaders = request.getHeaderNames();
