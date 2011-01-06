@@ -1,13 +1,13 @@
 package org.auscope.portal.server.web.service;
 
-import java.util.*;
+import java.util.Collection;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * A simple class that stores the URL of a CSW service along with extra security / misc information
+ * 
  * @author VOT002
- *
  */
 public class CSWServiceItem {
     public final String PLACEHOLDER_RECORD_ID = "%recordID%";
@@ -55,7 +55,7 @@ public class CSWServiceItem {
 	}
 	
 	/**
-	 * The list of roles that a user must have at least one of to be authorized to see records from the CSW Service
+	 * The list of roles that a user must have at least one of to be authorised to see records from the CSW Service
 	 * 
 	 * Can be null or empty
 	 * @return

@@ -1,22 +1,25 @@
 package org.auscope.portal.mineraloccurrence;
 
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.auscope.portal.server.domain.ows.OWSExceptionParser;
+import org.springframework.stereotype.Repository;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-import org.springframework.stereotype.Repository;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.*;
-
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.List;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 /**
  * User: Mathew Wyatt
@@ -25,8 +28,9 @@ import java.io.UnsupportedEncodingException;
  */
 @Repository
 public class MineralOccurrencesResponseHandler {
+	protected final Log log = LogFactory.getLog(getClass());
 
-    public List<Mine> getMines(String mineResponse) throws IOException, SAXException, ParserConfigurationException, XPathExpressionException {
+    public List<Mine> getMines(String mineResponse) throws Exception {
         DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
         domFactory.setNamespaceAware(true); // never forget this!
         DocumentBuilder builder = domFactory.newDocumentBuilder();
@@ -36,19 +40,20 @@ public class MineralOccurrencesResponseHandler {
         XPath xPath = factory.newXPath();
         xPath.setNamespaceContext(new MineralOccurrenceNamespaceContext());
 
-        // To death we are hastening, let us refrain from sinning ... never forget this too! ;-) 
-        XPathExpression expr = xPath.compile("/wfs:FeatureCollection/gml:featureMember/er:Mine | /wfs:FeatureCollection/gml:featureMembers/er:Mine");
+        //Do some rudimentary error testing
+        OWSExceptionParser.checkForExceptionResponse(mineDocument);
+
+        XPathExpression expr = xPath.compile("/wfs:FeatureCollection/gml:featureMember/er:MiningFeatureOccurrence/er:specification/er:Mine | /wfs:FeatureCollection/gml:featureMembers/er:MiningFeatureOccurrence/er:specification/er:Mine");
         NodeList mineNodes = (NodeList)expr.evaluate(mineDocument, XPathConstants.NODESET);
         ArrayList<Mine> mines = new ArrayList<Mine>();
 
         for(int i=0; i < mineNodes.getLength(); i++) {
             mines.add(new Mine(mineNodes.item(i)));
         }
-
         return mines;
     }
 
-    public Collection<Commodity> getCommodities(String commodityResponse) throws IOException, SAXException, ParserConfigurationException, XPathExpressionException {
+    public Collection<Commodity> getCommodities(String commodityResponse) throws Exception {
         DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
         domFactory.setNamespaceAware(true); // never forget this!
         DocumentBuilder builder = domFactory.newDocumentBuilder();
@@ -57,6 +62,9 @@ public class MineralOccurrencesResponseHandler {
         XPathFactory factory = XPathFactory.newInstance();
         XPath xPath = factory.newXPath();
         xPath.setNamespaceContext(new MineralOccurrenceNamespaceContext());
+
+        //Do some rudimentary error testing
+        OWSExceptionParser.checkForExceptionResponse(commodityDocument);
 
         XPathExpression expr = xPath.compile("//er:Commodity");
         NodeList commodityNodes = (NodeList)expr.evaluate(commodityDocument, XPathConstants.NODESET);
@@ -69,7 +77,7 @@ public class MineralOccurrencesResponseHandler {
         return commodities;
     }
 
-    public int getNumberOfFeatures(String mineralOccurrenceResponse) throws ParserConfigurationException, UnsupportedEncodingException, SAXException, IOException {
+    public int getNumberOfFeatures(String mineralOccurrenceResponse) throws Exception {
 
         DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
         domFactory.setNamespaceAware(true); // never forget this!
@@ -79,13 +87,17 @@ public class MineralOccurrencesResponseHandler {
         XPathFactory factory = XPathFactory.newInstance();
         XPath xPath = factory.newXPath();
         xPath.setNamespaceContext(new MineralOccurrenceNamespaceContext());
-        
+
+        //Do some rudimentary error testing
+        OWSExceptionParser.checkForExceptionResponse(mineralOccurrenceDocument);
+
         try {
             XPathExpression expr = xPath.compile("/wfs:FeatureCollection");
             Node result = (Node)expr.evaluate(mineralOccurrenceDocument, XPathConstants.NODE);
             return Integer.parseInt(result.getAttributes().getNamedItem("numberOfFeatures").getTextContent());
         } catch (Exception e) {
-            return 0;
+        	return 0;
+
         }
     }
 }

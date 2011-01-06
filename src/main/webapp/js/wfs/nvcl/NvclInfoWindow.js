@@ -10,7 +10,7 @@
  * @param {GMap2}   iMap
  * @param {GMarker} iMarker
  */ 
-function NvclInfoWindow(iMap, iMarker) {
+function NvclInfoWindow(iMap, iMarker, wfsUrl) {
  
     this.Map = iMap;    
     this.Marker = iMarker;
@@ -18,13 +18,13 @@ function NvclInfoWindow(iMap, iMarker) {
     this.boreholeId = iMarker.title || "";
     this.summaryHtml = iMarker.description || "";    
     this.waitHtml = 
-        "<div>" +
-            "<b>" + this.boreholeId + "</b>" +
-            "<p style=\"text-align:center;\">" +
-                "<img src=\"img/wait.gif\" style=\"padding-top:50px;\" />" +
-            "</p>" +
-        "</div>";                    
-    this.wfsServiceUrl = iMarker.wfsUrl; 
+        '<div>' +
+            '<b>' + this.boreholeId + '</b>' +
+            '<p style="text-align:center;">' +
+                '<img src="img/wait.gif" style="padding-top:50px;" />' +
+            '</p>' +
+        '</div>';                    
+    this.wfsServiceUrl = wfsUrl; 
     /**
      * iMarker.wfsUrl comes from GeoNetwork and represents GeoServer's service 
      * Url. From this Url we remove pathname and return only protocol with 
@@ -33,7 +33,7 @@ function NvclInfoWindow(iMap, iMarker) {
     this.geoServerUrl = (function(url) {        
         var str = url.slice( ("http://").length);   
         return 'http://' + str.slice(0,str.indexOf("/"));
-    })(iMarker.wfsUrl);
+    })(wfsUrl);
 }
 
 NvclInfoWindow.prototype = {
@@ -47,10 +47,16 @@ NvclInfoWindow.prototype = {
     'show': function() {
 		//Open our window with the basic info displayed
 		this.tabsArray[0] = new GInfoWindowTab(this.TAB_1, this.summaryHtml);
-        this.Marker.openInfoWindowTabs(this.tabsArray);
-        
-        //And update it with the downloaded data as it arrives
-        this.retrieveDatasets();  
+		
+		var me = this;
+		
+        this.Marker.openInfoWindowTabs(this.tabsArray, {
+        	onOpenFn:function(){
+                //And update it with the downloaded data as it arrives
+                me.retrieveDatasets(); 
+                }
+        });       
+ 
     },
             
     /*
@@ -70,12 +76,14 @@ NvclInfoWindow.prototype = {
             if (responseCode == 200) {
                 var XmlDoc = GXml.parse(response);
                 
-                if (g_IsIE)
+                if (g_IsIE) {
                     XmlDoc.setProperty("SelectionLanguage", "XPath");
+                }
 
                 var rootNode = XmlDoc.documentElement;
-                if (!rootNode)
+                if (!rootNode) {
                     return;
+                }
   
                 // get the dataset tag (inside is the info we need)
                 var aDataset = rootNode.getElementsByTagName("Dataset");
@@ -89,12 +97,8 @@ NvclInfoWindow.prototype = {
                     var aId, aName;
                     
                     for (var i=0; i < aDataset.length; i++ ) {
- 
-                         aId = GXml.value(aDataset[i].selectSingleNode
-                                    ("*[local-name() = 'DatasetID']"));
- 
-                         aName = GXml.value(aDataset[i].selectSingleNode
-                                    ("*[local-name() = 'DatasetName']"));
+                         aId = GXml.value(aDataset[i].selectSingleNode("*[local-name() = 'DatasetID']"));
+                         aName = GXml.value(aDataset[i].selectSingleNode("*[local-name() = 'DatasetName']"));
                                     
                         datasetCol.add(aId, aName);                    
                     }
@@ -335,7 +339,7 @@ function showBoreholeDetails(iBoreholeId, iServerUrl, iDatasetId) {
                     tip.body.dom.innerHTML = "Loading...";
                     
                     //Load our vocab string asynchronously
-                    var vocabsQuery = WEB_CONTEXT + '/getScalar.do?repository=nvcl-scalars&label=' + escape(record.get('logName').replace(' ', '_'));
+                    var vocabsQuery = 'getScalar.do?repository=nvcl-scalars&label=' + escape(record.get('logName').replace(' ', '_'));
                     GDownloadUrl(vocabsQuery, function(pData, pResponseCode) {
                         if(pResponseCode != 200) {
                             tip.body.dom.innerHTML = "ERROR: " + pResponseCode;
@@ -349,7 +353,12 @@ function showBoreholeDetails(iBoreholeId, iServerUrl, iDatasetId) {
                         }
                           
                         //Update tool tip
-                        tip.body.dom.innerHTML = response.scopeNote;
+                        if (response.definition && response.definition.length > 0)
+                        	tip.body.dom.innerHTML = response.definition;
+                        else if (response.scopeNote && response.scopeNote.length > 0)
+                        	tip.body.dom.innerHTML = response.scopeNote;
+                        else
+                        	tip.body.dom.innerHTML = 'N/A';
                       });
                 }
             }

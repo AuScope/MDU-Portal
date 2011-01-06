@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 
 /**
  * A simple wrapper around a thread pool
+ * 
+ * @version $Id$
  */
 @Repository
 public class CSWThreadExecutor implements Executor {

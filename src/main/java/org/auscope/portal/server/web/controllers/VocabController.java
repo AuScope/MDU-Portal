@@ -17,26 +17,22 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.auscope.portal.csw.ICSWMethodMaker;
 import org.auscope.portal.server.util.PortalPropertyPlaceholderConfigurer;
 import org.auscope.portal.server.web.service.HttpServiceCaller;
 import org.auscope.portal.server.web.view.JSONModelAndView;
 import org.auscope.portal.vocabs.Concept;
 import org.auscope.portal.vocabs.VocabularyServiceResponseHandler;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
 import org.xml.sax.InputSource;
 
 /**
@@ -141,21 +137,26 @@ public class VocabController {
     		tempNode = (Node)xPath.evaluate(extractScopeExpression, doc, XPathConstants.NODE);
     		final String scopeNoteString = tempNode != null ? tempNode.getTextContent() : "";
     		
-    		return CreateScalarQueryModel(true,response, scopeNoteString, labelString);
+    		String extractDefinitionExpression = "/RDF/Concept/definition";
+            tempNode = (Node)xPath.evaluate(extractDefinitionExpression, doc, XPathConstants.NODE);
+            final String definitionString = tempNode != null ? tempNode.getTextContent() : "";
+    		
+    		return CreateScalarQueryModel(true,response, scopeNoteString, labelString, definitionString);
     	} catch (Exception ex) {
     		//On error, just return failure JSON (and the response string if any)
     		log.error("getVocabQuery ERROR: " + ex.getMessage());
     	
-    		return CreateScalarQueryModel(false,response, "", "");
+    		return CreateScalarQueryModel(false,response, "", "", "");
     	}
     }
     
     private JSONModelAndView CreateScalarQueryModel
-            (final boolean success, final String data, final String scopeNote, final String label) {
+            (final boolean success, final String data, final String scopeNote, final String label, final String definition) {
     	ModelMap map = new ModelMap();
     	map.put("success", success);
     	map.put("data", data);
     	map.put("scopeNote", scopeNote);
+    	map.put("definition", definition);
     	map.put("label", label);
         
         return new JSONModelAndView(map);
@@ -203,7 +204,7 @@ public class VocabController {
      * 
      * @param
      */        
-    @RequestMapping("/getAllCommodities.do")
+    @RequestMapping("getAllCommodities.do")
     public ModelAndView getAllCommodities() throws Exception {
 
         String response = ""; 

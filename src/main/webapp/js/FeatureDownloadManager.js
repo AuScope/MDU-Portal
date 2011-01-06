@@ -19,29 +19,27 @@ FeatureDownloadManager.prototype.downloadCancelledHandler = null;
 FeatureDownloadManager.prototype.featureSetSizeThreshold = 200;
 
 
-FeatureDownloadManager.prototype.handleDownloadFinish = function(data, responseCode, boundingBox) {
-	if (responseCode == 200) {
-		this.downloadFinishedHandler(data, responseCode, boundingBox);
-    } else {
-    	this.downloadErrorHandler(data, responseCode);
-    }
-}
+FeatureDownloadManager.prototype.doDownload = function () {
+	var recordFetchURL = this.recordFetchURL;
+	var filterParams = this.filterParams;
+	Ext.Ajax.request({
+        	url			: recordFetchURL,
+        	params		: filterParams,
+			callingInstance : this,
+        	timeout		: 1000 * 60 * 20, //20 minute timeout
+        	failure		: function(response, options) {
+				options.callingInstance.downloadErrorHandler(response , options);
+        	},
+        	success		: function(response, options) {
+        		options.callingInstance.downloadFinishedHandler(response, options);
+			}
+		});
+};
 
-FeatureDownloadManager.prototype.doDownload = function (boundingBox) {
-	var url = this.recordFetchURL + '?' + this.filterParams + '&serviceUrl=' + this.serviceURL;
+FeatureDownloadManager.prototype.doCount = function(response, options, alreadyPrompted) {
 	
-	if (boundingBox != null && boundingBox != undefined && boundingBox.length > 0) 
-		url += '&boundingBox=' + boundingBox;
-	
-	var callingInstance = this;
-	GDownloadUrl(url, function (data, responseCode) {
-		callingInstance.handleDownloadFinish(data, responseCode, boundingBox);
-	});
-}
-
-FeatureDownloadManager.prototype.doCount = function(data, responseCode, alreadyPrompted) {
-	if (responseCode == 200) {
-        var jsonResponse = eval('(' + data + ')');
+        //var jsonResponse = eval('(' + data + ')');
+		var jsonResponse =Ext.util.JSON.decode(response.responseText);
         if (jsonResponse[0] > this.featureSetSizeThreshold) {
         	var win = null;
         	var callingInstance = this;
@@ -53,7 +51,7 @@ FeatureDownloadManager.prototype.doCount = function(data, responseCode, alreadyP
         			buttons:{yes:'Download Visible', no:'Abort Download'},
         			fn:function (buttonId) {
 	        			if (buttonId == 'yes') {
-	        				callingInstance.doDownload(callingInstance.currentBoundingBox);
+	        				callingInstance.doDownload();
 	        			} else if (buttonId == 'no') {
 	        				callingInstance.downloadCancelledHandler();
 	        			} 
@@ -67,29 +65,11 @@ FeatureDownloadManager.prototype.doCount = function(data, responseCode, alreadyP
 	        		buttons:{yes:'Download All', no:'Download Visible', cancel:'Abort Download'},
 	        		fn:function (buttonId) {
 	        			if (buttonId == 'yes') {
-	        				callingInstance.doDownload(callingInstance.currentBoundingBox);
+	        				callingInstance.doDownload();
 	        			} else if (buttonId == 'no') {
-	        				var mapBounds = callingInstance.map.getBounds();
-	            			var sw = mapBounds.getSouthWest();
-	            			var ne = mapBounds.getNorthEast();
-	            			var center = mapBounds.getCenter();
+	        				callingInstance.filterParams.bbox = Ext.util.JSON.encode(callingInstance.fetchVisibleMapBounds(callingInstance.map));
 	            			
-	            			var adjustedSWLng = sw.lng(); 
-	            			var adjustedNELng = ne.lng();
-	            			
-	            			//this is so we can fetch data when our bbox is crossing the anti meridian
-	            			//Otherwise our bbox wraps around the WRONG side of the planet
-	            			if (adjustedSWLng <= 0 && adjustedNELng >= 0 || 
-	            				adjustedSWLng >= 0 && adjustedNELng <= 0) {
-	            				adjustedSWLng = (sw.lng() < 0) ? (180 - sw.lng()) : sw.lng();
-	            				adjustedNELng = (ne.lng() < 0) ? (180 - ne.lng()) : ne.lng();
-	            			}
-	            			
-	            			callingInstance.startDownload(Math.min(sw.lat(), ne.lat()) + ',' +
-	            										  Math.min(adjustedSWLng, adjustedNELng) + ',' +
-	            										  Math.max(sw.lat(), ne.lat()) + ',' +
-	            										  Math.max(adjustedSWLng, adjustedNELng), 
-	            										  true);
+	            			callingInstance.startDownload(true);
 	        			} else if (buttonId == 'cancel') {
 	        				callingInstance.downloadCancelledHandler();
 	        			}
@@ -102,33 +82,58 @@ FeatureDownloadManager.prototype.doCount = function(data, responseCode, alreadyP
         	
         } else {
         	//If we have an acceptable number of records, this is how we shall proceed
-        	this.doDownload(this.currentBoundingBox);
+        	this.doDownload();
         }
-    } else {
-    	//If the count download fails, 
-    	this.downloadErrorHandler(data, responseCode);
-    }
-}
+    
+};
 
-FeatureDownloadManager.prototype.startDownload = function(boundingBox, alreadyPrompted) {
-	this.currentBoundingBox = boundingBox;
+FeatureDownloadManager.prototype.startDownload = function(alreadyPrompted) {
 	
 	if (alreadyPrompted == null || alreadyPrompted == undefined)
 		alreadyPrompted = false;
-	
-	//Firstly discern how many records are available, this will affect how we proceed
-	var url = this.recordCountURL + '?' + this.filterParams + '&serviceUrl=' + this.serviceURL;
-	if (boundingBox != null && boundingBox != undefined && boundingBox.length > 0) 
-		url += '&boundingBox=' + boundingBox;
-
+		
 	//If we have a count function, go through the motions
 	//Otherwise just download the URL
 	if (!this.recordCountURL || this.recordCountURL.length == 0) {
-		this.doDownload(this.currentBoundingBox);
+		this.doDownload();
 	} else {
-		var callingInstance = this;
-	    GDownloadUrl(url, function (data, responseCode) {
-	    	callingInstance.doCount(data, responseCode, alreadyPrompted);
-	    });
+		var recordCountURL = this.recordCountURL;
+		var filterParams = this.filterParams;
+	    Ext.Ajax.request({
+        	url			: recordCountURL,
+        	params		: filterParams,
+			callingInstance : this,
+        	timeout		: 1000 * 60 * 20, //20 minute timeout
+        	failure		: function(response, options) {
+        		options.callingInstance.downloadErrorHandler(response, options);
+        	},
+        	success		: function(response, options) {
+				options.callingInstance.doCount(response, options, alreadyPrompted);
+			}
+		});
 	}
-}
+};
+
+FeatureDownloadManager.prototype.fetchVisibleMapBounds = function(gMapInstance) {
+	var mapBounds = gMapInstance.getBounds();
+	var sw = mapBounds.getSouthWest();
+	var ne = mapBounds.getNorthEast();
+	var center = mapBounds.getCenter();
+
+	var adjustedSWLng = sw.lng();
+	var adjustedNELng = ne.lng();
+
+	//this is so we can fetch data when our bbox is crossing the anti meridian
+	//Otherwise our bbox wraps around the WRONG side of the planet
+	if (adjustedSWLng <= 0 && adjustedNELng >= 0 ||
+		adjustedSWLng >= 0 && adjustedNELng <= 0) {
+		adjustedSWLng = (sw.lng() < 0) ? (180 - sw.lng()) : sw.lng();
+		adjustedNELng = (ne.lng() < 0) ? (180 - ne.lng()) : ne.lng();
+	}
+
+	return {
+			bboxSrs : 'EPSG:4326',
+			lowerCornerPoints : [Math.min(adjustedSWLng, adjustedNELng), Math.min(sw.lat(), ne.lat())],
+			upperCornerPoints : [Math.max(adjustedSWLng, adjustedNELng), Math.max(sw.lat(), ne.lat())]
+	};
+};

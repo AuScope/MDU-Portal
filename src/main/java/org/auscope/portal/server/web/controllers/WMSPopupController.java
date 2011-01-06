@@ -1,26 +1,24 @@
 package org.auscope.portal.server.web.controllers;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.auscope.portal.server.web.service.HttpServiceCaller;
+import java.io.IOException;
+import java.net.URL;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
-import java.net.URL;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.auscope.portal.server.web.service.HttpServiceCaller;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 
 /**
  * Controller that handles GetFeatureInfo WMS requests
  * 
  * @author Jarek Sanders
- * @version $Id$ - %I%, %G%
+ * @version $Id: WMSPopupController.java 1342 2010-10-26 15:11:57Z mrt $ - %I%, %G%
  */
 
 @Controller
@@ -38,7 +36,8 @@ public class WMSPopupController {
                             @RequestParam("y") String y,
                             @RequestParam("BBOX") String bbox, 
                             @RequestParam("WIDTH") String width,
-                            @RequestParam("HEIGHT") String height) throws IOException 
+                            @RequestParam("HEIGHT") String height,
+                            @RequestParam("INFO_FORMAT") String infoFormat) throws IOException 
    {   
       String AMP = "&";
       String url = wms_url;
@@ -54,7 +53,7 @@ public class WMSPopupController {
       url += "&VERSION=1.1.0";
       url += "&BBOX=" + bbox;
       url += "&X=" + x + "&Y=" + y;
-      url += "&INFO_FORMAT=text/html";
+      url += "&INFO_FORMAT=" + infoFormat;
       url += "&QUERY_LAYERS=" + query_layers;
       url += "&FEATURE_COUNT=50";
       url += "&SRS=EPSG:4326";

@@ -1,41 +1,45 @@
 package org.auscope.portal.server.web.service;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.params.HttpMethodParams;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.ConnectException;
+import java.net.URL;
+import java.net.UnknownHostException;
+
+import org.apache.commons.httpclient.ConnectTimeoutException;
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpConnectionManager;
+import org.apache.commons.httpclient.HttpMethodBase;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.SimpleHttpConnectionManager;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.auscope.portal.server.util.PortalPropertyPlaceholderConfigurer;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-
-import java.net.*;
-import java.io.BufferedReader;
-import java.io.BufferedInputStream;
-import java.io.InputStreamReader;
-import java.io.IOException;
 
 
 /**
  * Utility class used to call web service end points
- * 
+ *
  * @version $Id$
  */
 
 @Repository
 public class HttpServiceCaller {
     protected final Log log = LogFactory.getLog(getClass());
-    
-    private PortalPropertyPlaceholderConfigurer hostConfigurer;
+
+    private HttpConnectionManagerParams clientParams;
 
     @Autowired
-    @Qualifier(value = "propertyConfigurer")    
-    public void setHostConfigurer(PortalPropertyPlaceholderConfigurer hostConfig) {
-        this.hostConfigurer = hostConfig;
-    }    
-    
+    public void setClientParams(HttpConnectionManagerParams clientParams) {
+        this.clientParams = clientParams;
+    }
+
     /**
      * Makes a call to a http GetMethod and returns the response as a string
      *
@@ -50,16 +54,31 @@ public class HttpServiceCaller {
         this.invokeTheMethod(method, httpClient);
 
         //get the reponse before we close the connection
-        String response = method.getResponseBodyAsString();
+        //String response = method.getResponseBodyAsString();
+
+        String response = responseToString(new BufferedInputStream(method.getResponseBodyAsStream()));
 
         //release the connection
         method.releaseConnection();
 
-        log.debug("XML response from server:");
-        log.debug("\n" + response);
-        
+        log.trace("XML response from server:");
+        log.trace("\n" + response);
         //return it
         return response;
+    }
+
+    /**
+     * Invokes a method and returns the binary response as a stream
+     *
+     * WARNING - ensure you call method.releaseConnection() AFTER you have finished reading the input stream
+     *
+     * @return
+     */
+    public InputStream getMethodResponseAsStream(HttpMethodBase method, HttpClient httpClient) throws Exception {
+        //invoke the method
+        this.invokeTheMethod(method, httpClient);
+
+        return method.getResponseBodyAsStream();
     }
 
     /**
@@ -88,38 +107,7 @@ public class HttpServiceCaller {
      */
     private void invokeTheMethod(HttpMethodBase method, HttpClient httpClient) throws Exception {
 
-        HttpConnectionManagerParams clientParams = new HttpConnectionManagerParams();
-
-        int SECOND = 1000;      // 1000 millisecond
-        
-        int BODY_TIMEOUT;
-        int SOCK_TIMEOUT;
-        int CONN_TIMEOUT;
-        
-        try {
-            BODY_TIMEOUT = SECOND * Integer.parseInt(hostConfigurer.resolvePlaceholder("wait-for-body-content.timeout"));        
-            SOCK_TIMEOUT = SECOND * Integer.parseInt(hostConfigurer.resolvePlaceholder("socket.timeout"));
-            CONN_TIMEOUT = SECOND * Integer.parseInt(hostConfigurer.resolvePlaceholder("connection-establish.timeout"));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            e.printStackTrace();
-            throw e;
-        }
-
-        log.info("BODY_TIMEOUT : " + BODY_TIMEOUT);
-        log.info("SOCK_TIMEOUT : " + SOCK_TIMEOUT);
-        log.info("CONN_TIMEOUT : " + CONN_TIMEOUT);
-        
-        // Period of time in milliseconds to wait for a content body 
-        // sent in response to HEAD method from a non-compliant server.
-        clientParams.setParameter( HttpMethodParams.HEAD_BODY_CHECK_TIMEOUT
-                                 , BODY_TIMEOUT);
-
-        // Default socket timeout in milliseconds which is the timeout for waiting for data
-        clientParams.setSoTimeout(SOCK_TIMEOUT);
-        
-        // Timeout until connection is etablished.
-        clientParams.setConnectionTimeout(CONN_TIMEOUT);
+        log.debug("method=" + method.getURI());
 
         //create the connection manager and add it to the client
         HttpConnectionManager man = new SimpleHttpConnectionManager();
@@ -149,7 +137,7 @@ public class HttpServiceCaller {
      * @return
      */
     public Header getResponseHeader(HttpMethodBase method, String header) {
-        return method.getResponseHeader(header);   
+        return method.getResponseHeader(header);
     }
 
     /**
@@ -157,9 +145,9 @@ public class HttpServiceCaller {
      * @return
      */
     public HttpClient getHttpClient() {
-        return new HttpClient();        
+        return new HttpClient();
     }
-    
+
     /**
      * Given a URL, call it, convert the response into a String and return
      * @param serviceUrl
@@ -169,7 +157,7 @@ public class HttpServiceCaller {
     public String callHttpUrlGET(URL serviceUrl) throws IOException {
         return responseToString(new BufferedInputStream(serviceUrl.openStream()));
     }
-    
+
     /**
      * Convert a Buffered stream into a String
      * @param stream
@@ -184,5 +172,5 @@ public class HttpServiceCaller {
             stringBuffer.append(line);
         }
         return stringBuffer.toString();
-    }   
+    }
 }

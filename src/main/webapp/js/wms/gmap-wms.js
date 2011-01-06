@@ -64,7 +64,7 @@ function GWMSTileLayer(map, copyrights,  minResolution,  maxResolution) {
    this.opacity = 1.0;
    
    // Google Maps Zoom level at which we switch from Mercator to Lat/Long.
-	// this.mercZoomLevel = 15; 
+	this.mercZoomLevel = 4; 
 }
 
 GWMSTileLayer.prototype = new GTileLayer(new GCopyrightCollection(), 0, 0);
@@ -98,49 +98,54 @@ GWMSTileLayer.prototype.getTileUrl = function(point, zoom) {
 	var proj = mapType.getProjection();
 	var tileSize = mapType.getTileSize();
 
-	var upperLeftPix = new GPoint(point.x * tileSize, (point.y+1) * tileSize);
-	var lowerRightPix = new GPoint((point.x+1) * tileSize, point.y * tileSize);
-	var upperLeft = proj.fromPixelToLatLng(upperLeftPix, zoom);
-   var lowerRight = proj.fromPixelToLatLng(lowerRightPix, zoom);
+	var lowerLeftPix = new GPoint(point.x * tileSize, (point.y+1) * tileSize);
+	var upperRightPix = new GPoint((point.x+1) * tileSize, point.y * tileSize);
+	var upperRight = proj.fromPixelToLatLng(upperRightPix, zoom);
+	var lowerLeft = proj.fromPixelToLatLng(lowerLeftPix, zoom);
    
-   /*if (this.mercZoomLevel != 0 && zoom < this.mercZoomLevel) {
-      var boundBox = this.dd2MercMetersLng(upperLeft.lng()) + "," +
-                     this.dd2MercMetersLat(upperLeft.lat()) + "," +
-                     this.dd2MercMetersLng(lowerRight.lng()) + "," +
-                     this.dd2MercMetersLat(lowerRight.lat());
+	var boundBox = null;
+	var srs = null;
+   if (this.mercZoomLevel !== 0 && zoom < this.mercZoomLevel) {
+      boundBox = this.dd2MercMetersLng(lowerLeft.lng()) + "," +
+                     this.dd2MercMetersLat(lowerLeft.lat()) + "," +
+                     this.dd2MercMetersLng(upperRight.lng()) + "," +
+                     this.dd2MercMetersLat(upperRight.lat());
 		// Change for GeoServer - 41001 is mercator and installed by default.
-      var srs = "EPSG:3395";
-   } else {*/
-   
-   var boundBox = upperLeft.lng() + "," +
-                  upperLeft.lat() + "," +
-                  lowerRight.lng() + "," +
-                  lowerRight.lat();
+      srs = "EPSG:41001";
+   } else {
+       boundBox = lowerLeft.lng() + "," +
+                      lowerLeft.lat() + "," +
+                      upperRight.lng() + "," +
+                      upperRight.lat();
                   
-   var srs = "EPSG:4326";
-	//}
+       srs = "EPSG:4326";
+	}
 
    // Build GetMap request URL
    var url = this.baseURL;
    
    var last_char = url.charAt(url.length - 1);
-   if ((last_char != "?") || (last_char != "&")) {
-      if (url.indexOf('?') == -1)
+   if ((last_char !== "?") && (last_char !== "&")) {
+      if (url.indexOf('?') == -1) {
          url += "?";
-      else
+      } else {
          url += "&";
+      }
    }
    
    url += "REQUEST=GetMap";
    url += "&SERVICE=WMS";
-   url += "&VERSION=1.1.0";
-   if (this.layers)
+   url += "&VERSION=1.1.1";
+   if (this.layers) {
       url += "&LAYERS=" + this.layers;
-   url += "&STYLES="
-   if (this.styles)
+   }
+   url += "&STYLES=";
+   if (this.styles) {
       url += this.styles;
-   if (this.sld)
+   }
+   if (this.sld) {
       url += "&SLD=" + this.sld;
+   }
    url += "&FORMAT=" + this.format;
    url += "&BGCOLOR=0xFFFFFF";
    url += "&TRANSPARENT=TRUE";

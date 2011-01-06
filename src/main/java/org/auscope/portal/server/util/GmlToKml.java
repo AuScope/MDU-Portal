@@ -13,7 +13,6 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.stereotype.Component;
 
 
@@ -67,7 +66,8 @@ public class GmlToKml {
          log.error(tce);
       } catch (TransformerException e) {
          log.error("Failed to transform kml file: " + e);
-      }     
+      }
+      log.debug("GML output: \n" + sw.toString());
       return sw.toString();
    }
 

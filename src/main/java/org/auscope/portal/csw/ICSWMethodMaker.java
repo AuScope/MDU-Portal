@@ -8,5 +8,5 @@ import org.apache.commons.httpclient.HttpMethodBase;
  * Time: 9:46:02 AM
  */
 public interface ICSWMethodMaker {
-    public HttpMethodBase makeMethod() throws Exception;
+    public HttpMethodBase makeMethod();
 }

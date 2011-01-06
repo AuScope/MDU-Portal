@@ -5,12 +5,11 @@ import java.util.Collection;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.auscope.portal.mineraloccurrence.Commodity;
 import org.auscope.portal.mineraloccurrence.CommodityFilter;
 import org.auscope.portal.mineraloccurrence.MineralOccurrencesResponseHandler;
+import org.auscope.portal.server.domain.filter.FilterBoundingBox;
 import org.auscope.portal.server.web.IWFSGetFeatureMethodMaker;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Service;
  * Concrete implementation of the CommodityService interface.
  * 
  * @author Jarek Sanders
- * @version $Id: CommodityServiceImpl.java 1052 2010-05-26 09:02:21Z JarekSanders $
+ * @version $Id: CommodityServiceImpl.java 1342 2010-10-26 15:11:57Z mrt $
  */
 @Service
 public class CommodityServiceImpl implements CommodityService{
@@ -50,32 +49,46 @@ public class CommodityServiceImpl implements CommodityService{
     
     // ------------------------------------------- Property Setters and Getters
     
-    public Collection<Commodity> get(String serviceURL, String commodityName) 
+    
+    
+    private Collection<Commodity> get(String serviceURL, String commodityName, FilterBoundingBox bbox, int maxFeatures) 
     throws Exception {
-        
         HttpMethodBase method = null;
+         
+        CommodityFilter commodityFilter = new CommodityFilter(commodityName);
+        String filterString = null;
+        String srsName = null;
         
-        // If we don't have a name, then just get all of them
-        if (commodityName.equals("")) {
-            method = methodMaker.makeMethod(serviceURL, "er:Commodity", "");
+        if (bbox != null) {
+            filterString = commodityFilter.getFilterStringBoundingBox(bbox);
+            srsName = bbox.getBboxSrs();
         } else {
-            // Create the filter to append to the url
-            CommodityFilter commodityFilter = new CommodityFilter(commodityName);
-            log.debug(serviceURL + "\n" + commodityFilter.getFilterString());
-            
-            //create a GetFeature request with filter constraints on a query
-            method = methodMaker.makeMethod ( serviceURL
-                                            , "er:Commodity"
-                                            , commodityFilter.getFilterString());
+            filterString = commodityFilter.getFilterStringAllRecords();
         }
+        
+        method = methodMaker.makeMethod(serviceURL, "er:Commodity", filterString, maxFeatures, srsName);
+                                
 
         // Call the service, and get all the commodities
         String commodityResponse = httpServiceCaller.getMethodResponseAsString(method, httpServiceCaller.getHttpClient());
-        
-        log.debug("................Commodity response");
-        log.debug(commodityResponse);
 
-        //parse the commodities and return them                
-        return this.mineralOccurrencesResponseHandler.getCommodities(commodityResponse);
+        //parse the commodities and return them             
+        try {
+            return this.mineralOccurrencesResponseHandler.getCommodities(commodityResponse);
+        } catch (Exception ex) {
+            log.error(ex);
+            log.debug(String.format("Error Args - serviceUrl='%1$s' commodityName='%2$s' bbox='%3$s' maxFeatures=%4$d", serviceURL, commodityName, bbox, maxFeatures), ex);
+            log.trace(String.format("filterString='%1$s'", filterString));
+            throw ex;
+        }
+    }
+    
+    public Collection<Commodity> getAll(String serviceURL, String commodityName, int maxFeatures)
+            throws Exception {
+        return get(serviceURL, commodityName, null, maxFeatures);
+    }
+
+    public Collection<Commodity> getVisible(String serviceURL, String commodityName, FilterBoundingBox bbox, int maxFeatures) throws Exception {
+        return get(serviceURL, commodityName, bbox, maxFeatures);
     }
 }

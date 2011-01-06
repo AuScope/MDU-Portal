@@ -1,13 +1,14 @@
 package org.auscope.portal.server.web.view;
 
-import org.springframework.web.servlet.view.AbstractView;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Map;
 
-import net.sf.json.JSONSerializer;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONSerializer;
+
+import org.springframework.web.servlet.view.AbstractView;
 
 /**
  * User: Mathew Wyatt
@@ -28,11 +29,6 @@ public class JSONView extends AbstractView {
 
     public JSONView(JSONArray jsonArray) {
         this.jsonArray = jsonArray;
-    }
-    
-  //Can be null
-    public JSONArray getJSONArray() {
-    	return jsonArray;
     }
 
     protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws Exception {

@@ -255,8 +255,36 @@
         </dependency>
                         
         <!--
-        JDBC Data Access Library (depends on spring-core, spring-beans, spring-context, spring-tx)
-        Define this if you use Spring's JdbcTemplate API (org.springframework.jdbc.*)
+        Application Context (depends on spring-core, spring-expression, spring-aop, spring-beans)
+        This is the central artifact for Spring's Dependency Injection Container and is generally
+        always defined
+        (org.springframework.stereotype.*, org.springframework.ui.*)
+        -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--
+        Web application development utilities applicable to both Servlet and Portlet Environments
+        (depends on spring-core, spring-beans, spring-context)
+        Define this if you use Spring MVC, or wish to use Struts, JSF, or another web framework
+        with Spring (org.springframework.web.*)
+        -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>${spring.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--
+        Spring MVC for Servlet Environments (depends on spring-core, spring-beans, spring-context,
+        spring-web)
+        Define this if you use Spring MVC with a Servlet Container such as Apache Tomcat
+        (org.springframework.web.servlet.*)
         -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -362,6 +390,30 @@
             <groupId>xom</groupId>
             <artifactId>xom</artifactId>
             <version>1.1d2</version>
+        </dependency>
+        <dependency>
+        	<groupId>org.slf4j</groupId>
+        	<artifactId>slf4j-log4j12</artifactId>
+        	<version>1.5.6</version>
+        	<optional>false</optional>
+        </dependency>
+        <dependency>
+        	<groupId>edu.ucar</groupId>
+        	<artifactId>netcdf</artifactId>
+        	<version>4.1</version>
+        	<optional>false</optional>
+        </dependency>
+        <dependency>
+        	<groupId>net.sf.saxon</groupId>
+        	<artifactId>saxon-xpath</artifactId>
+        	<version>8.7</version>
+        	<optional>false</optional>
+        </dependency>
+        <dependency>
+        	<groupId>net.sf.saxon</groupId>
+        	<artifactId>saxon-dom</artifactId>
+        	<version>8.7</version>
+        	<optional>false</optional>
         </dependency>
     </dependencies>
 </project>
