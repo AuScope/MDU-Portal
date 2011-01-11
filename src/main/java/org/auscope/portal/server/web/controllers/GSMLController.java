@@ -166,6 +166,7 @@ public class GSMLController {
     @RequestMapping("/doYilgarnGeochemistry.do")
     public ModelAndView doYilgarnGeochemistryFilter(
     		@RequestParam(required=false,	value="serviceUrl") String serviceUrl,
+    		@RequestParam(required=false,	value="geologicName") String geologicName,
             @RequestParam(required=false,	value="rockLithology") String rockLithology,
             @RequestParam(required=false,	value="weatherLithology") String weatherLithology,            
             @RequestParam(required=false, value="bbox") String bboxJson,
@@ -178,7 +179,7 @@ public class GSMLController {
         JSONArray requestInfo = new JSONArray();
         try{
         	String filterString;
-	        YilgarnGeochemistryFilter yilgarnGeochemistryFilter = new YilgarnGeochemistryFilter(rockLithology, weatherLithology);
+	        YilgarnGeochemistryFilter yilgarnGeochemistryFilter = new YilgarnGeochemistryFilter(geologicName, rockLithology, weatherLithology);
 	        if (bbox == null) {
 	            filterString = yilgarnGeochemistryFilter.getFilterStringAllRecords();
 	        } else {

@@ -55,7 +55,9 @@
    <!-- Replace the above parameter with the one below for stand-alone testing
    <xsl:variable name="serviceURL" select="'http://gsv-ws.dpi.vic.gov.au/EarthResourceML/1.1/wfs?'"/>
    -->
-
+    
+   <xsl:variable name="gsmlGeoUnitString"><![CDATA[?service=WFS&version=1.1.0&request=GetFeature&typename=gsml:GeologicUnit&featureId=]]></xsl:variable>
+    
    <!-- MATCH ROOT FEATURECOLLECTION -->
    <!-- ================================================================= -->
    <xsl:template match="wfs:FeatureCollection">
@@ -486,9 +488,13 @@
         <name><xsl:value-of select="@gml:id"/></name>
         <description>
            <xsl:text>featureId:</xsl:text><xsl:value-of select="@gml:id"/>
-           
-           <![CDATA[<table border="1" cellspacing="1" cellpadding="2" " width="100%" bgcolor="#EAF0F8">
-           <tr><td>Name</td><td>]]><xsl:value-of select="./gml:name[@codeSpace='http://www.cgi-iugs.org/uri']"/><![CDATA[</td>]]>          
+           <![CDATA[<table border="1" cellspacing="1" width="100%" bgcolor="#EAF0F8">
+           <tr><td>Name</td><td>]]>
+           <xsl:call-template name="make-wfspopup-url">
+               <xsl:with-param name="friendly-name" select="./gml:name[@codeSpace='http://www.cgi-iugs.org/uri']"/>
+               <xsl:with-param name="real-url">
+               <xsl:value-of select="$serviceURL"/><xsl:value-of select="$gsmlGeoUnitString"/><xsl:value-of select="@gml:id"/></xsl:with-param>
+           </xsl:call-template><![CDATA[</td></tr>]]>        
            <![CDATA[</tr><tr><td>Location</td><td>]]><xsl:value-of select="$coordinates"/><![CDATA[</td>]]>
            <![CDATA[</tr><tr><td>Observation Method</td><td>]]><xsl:value-of select="./gsml:occurrence/gsml:MappedFeature/gsml:observationMethod/gsml:CGI_TermValue/gsml:value[@codeSpace='urn:cgi:classifier:CGI:MappedFeatureObservationMethod:200811']"/><![CDATA[</td>]]>
            <![CDATA[</tr><tr><td>Rock Material</td><td>]]><xsl:value-of select="./gsml:composition/gsml:CompositionPart/gsml:material/gsml:RockMaterial/gsml:lithology/@xlink:href"/><![CDATA[</td>]]>
@@ -841,5 +847,5 @@
       <xsl:param name="real-url"/>
       <![CDATA[<a href="#" onclick="var w=window.open('wfsFeaturePopup.do?url=]]><xsl:value-of select="$real-url"/><![CDATA[','AboutWin','toolbar=no, menubar=no,location=no,resizable=yes,scrollbars=yes,statusbar=no,height=450,width=820');w.focus();return false;">]]><xsl:value-of select="$friendly-name"/><![CDATA[</a>]]>
    </xsl:template>
-
+  
 </xsl:stylesheet>

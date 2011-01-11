@@ -22,14 +22,20 @@ YilgarnGeochemistryFilterForm = function(id) {
             title      : 'YilgarnGeochemistry Filter Properties',
             autoHeight : true,
             items      : [
+			{
+				anchor     : '95%',
+			    xtype      : 'textfield',
+			    fieldLabel : 'Name',
+			    name       : 'geologicName'
+			},      
             {
-            	anchor     : '100%',
+            	anchor     : '95%',
                 xtype      : 'textfield',
                 fieldLabel : 'Rock Material',
                 name       : 'rockLithology'
             },
             {
-            	anchor     : '100%',
+            	anchor     : '95%',
                 xtype      : 'textfield',
                 fieldLabel : 'Weathering',
                 name       : 'weatherLithology'
