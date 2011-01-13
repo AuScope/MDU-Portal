@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.auscope.portal.csw.CSWThreadExecutor;
@@ -29,7 +31,12 @@ public class TestCSWService {
 	//determines the size of the test + congestion
 	static final int CONCURRENT_THREADS_TO_RUN = 10;
 
+	//How many of the fake CSW services will require authorization
+	static final String AUTHORIZED_ROLE = "ROLE_TEST";
+	static final int AUTHORIZED_CSW_COUNT = 7;
+	
 	//These determine the correct numbers for a single read of the test file
+	
 	static final int RECORD_COUNT_WMS = 2;
 	static final int RECORD_COUNT_WFS = 12;
 	static final int RECORD_COUNT_TOTAL = 15;
@@ -52,6 +59,7 @@ public class TestCSWService {
      */
     private HttpServiceCaller httpServiceCaller = context.mock(HttpServiceCaller.class);
 
+    private HttpServletRequest httpServletRequest = context.mock(HttpServletRequest.class);
     /**
      * Thread executor
      */
@@ -71,10 +79,52 @@ public class TestCSWService {
       	//Create our service list
       	ArrayList<CSWServiceItem> serviceUrlList = new ArrayList<CSWServiceItem>(CONCURRENT_THREADS_TO_RUN);
       	for (int i = 0; i < CONCURRENT_THREADS_TO_RUN; i++){
-      		serviceUrlList.add(new CSWServiceItem("http://localhost"));
+      		if (i < AUTHORIZED_CSW_COUNT) {
+      			serviceUrlList.add(new CSWServiceItem("http://localhost")); //This constructor has no user restrictions
+      		} else {
+      			ArrayList tempList = new ArrayList();
+      			tempList.add(AUTHORIZED_ROLE);
+      			serviceUrlList.add(new CSWServiceItem("http://localhost", "http://localhost", tempList)); //This one is restricted
+      		}
       	}
 
         this.cswService = new CSWService(threadExecutor, httpServiceCaller, util, serviceUrlList);
+    }
+    
+    /**
+     * Tests whether an unauthorized user returns the correct number of records
+     * @throws Exception
+     */
+    @Test
+    public void testUnauthorizedRecordUpdate() throws Exception {
+   	 final String docString = org.auscope.portal.Util.loadXML("src/test/resources/cswRecordResponse.xml");
+
+        context.checking(new Expectations() {{
+       	 
+            exactly(CONCURRENT_THREADS_TO_RUN).of(httpServiceCaller).getHttpClient();
+            exactly(CONCURRENT_THREADS_TO_RUN).of(httpServiceCaller).getMethodResponseAsString(with(any(HttpMethodBase.class)), with(any(HttpClient.class)));will(returnValue(docString));
+            
+            
+            atLeast(1).of(httpServletRequest).isUserInRole(AUTHORIZED_ROLE); will(returnValue(false));
+        }});
+
+        //We call this twice to test that an update wont commence whilst
+        //an update for a service is already running (if it does it will trigger too many calls to getHttpClient
+        this.cswService.updateRecordsInBackground();
+        this.cswService.updateRecordsInBackground();
+        try {
+        	threadExecutor.getExecutorService().shutdown();
+        	threadExecutor.getExecutorService().awaitTermination(180, TimeUnit.SECONDS);
+        }
+        catch (Exception ex) {
+        	threadExecutor.getExecutorService().shutdownNow();
+        	Assert.fail("Exception whilst waiting for update to finish " + ex.getMessage());
+        }
+      
+      //Now lets do the above tests with an unauthorized user
+      Assert.assertEquals(RECORD_COUNT_TOTAL * (AUTHORIZED_CSW_COUNT), this.cswService.getAllRecords(httpServletRequest).length);
+      Assert.assertEquals(RECORD_COUNT_WMS * (AUTHORIZED_CSW_COUNT), this.cswService.getWMSRecords(httpServletRequest).length);
+      Assert.assertEquals(RECORD_COUNT_WFS * (AUTHORIZED_CSW_COUNT), this.cswService.getWFSRecords(httpServletRequest).length);
     }
 
     /**
@@ -166,18 +216,16 @@ public class TestCSWService {
         Assert.assertTrue("Test took too long, assuming other threads are NOT returning immediately", totalTime < (delay * 2));
     }
 
-    /**
-     * Test that the function is able to actually load CSW records
-     * @throws Exception
-     */
+    
     @Test
-    public void testUpdateCSWRecords() throws Exception {
+    public void testAuthorizedRecordUpdate() throws Exception {
         final String docString = org.auscope.portal.Util.loadXML("src/test/resources/cswRecordResponse.xml");
 
         context.checking(new Expectations() {{
             exactly(CONCURRENT_THREADS_TO_RUN).of(httpServiceCaller).getHttpClient();
-            exactly(CONCURRENT_THREADS_TO_RUN).of(httpServiceCaller).getMethodResponseAsString(with(
-            		any(HttpMethodBase.class)), with(any(HttpClient.class)));will(returnValue(docString));
+            exactly(CONCURRENT_THREADS_TO_RUN).of(httpServiceCaller).getMethodResponseAsString(with(any(HttpMethodBase.class)), with(any(HttpClient.class)));will(returnValue(docString));
+            
+            atLeast(1).of(httpServletRequest).isUserInRole(AUTHORIZED_ROLE); will(returnValue(true));
         }});
 
         //We call this twice to test that an update wont commence whilst
@@ -192,15 +240,16 @@ public class TestCSWService {
         	threadExecutor.getExecutorService().shutdownNow();
         	Assert.fail("Exception whilst waiting for update to finish " + ex.getMessage());
         }
-
-        //in the response we loaded from the text file it contains 55 records
-        Assert.assertEquals(CONCURRENT_THREADS_TO_RUN * RECORD_COUNT_TOTAL,
-        		this.cswService.getAllRecords().length);
-        Assert.assertEquals(CONCURRENT_THREADS_TO_RUN * RECORD_COUNT_WMS,
-        		this.cswService.getWMSRecords().length);
-        Assert.assertEquals(CONCURRENT_THREADS_TO_RUN * RECORD_COUNT_WFS,
-        		this.cswService.getWFSRecords().length);
-        Assert.assertEquals(CONCURRENT_THREADS_TO_RUN * RECORD_COUNT_ERMINE_RECORDS,
-        		this.cswService.getWCSRecords().length);
+        
+      //in the response we loaded from the text file it contains 15 records
+      Assert.assertEquals(RECORD_COUNT_TOTAL * CONCURRENT_THREADS_TO_RUN, this.cswService.getAllRecords(httpServletRequest).length);
+      
+      //in the response we loaded from the text file it contains 2 WMS records
+      Assert.assertEquals(RECORD_COUNT_WMS * CONCURRENT_THREADS_TO_RUN, this.cswService.getWMSRecords(httpServletRequest).length);
+      
+      //in the response we loaded from the text file it contains 12 WFS records
+      Assert.assertEquals(RECORD_COUNT_WFS * CONCURRENT_THREADS_TO_RUN, this.cswService.getWFSRecords(httpServletRequest).length);
+      
+      
     }
 }

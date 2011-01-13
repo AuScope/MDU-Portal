@@ -70,7 +70,7 @@ public class TestCSWController {
 
     	context.checking(new Expectations() {{
     		oneOf(mockCSWService).updateRecordsInBackground();
-    		oneOf(mockCSWService).getAllRecords();will(returnValue(new CSWRecord[] {mockCSWRecord1, mockCSWRecord2}));
+    		oneOf(mockCSWService).getAllRecords(mockHttpRequest);will(returnValue(new CSWRecord[] {mockCSWRecord1, mockCSWRecord2}));
 
     		oneOf(mockViewCSWRecordFactory).toView(mockCSWRecord1);will(returnValue(viewCSWRecord1));
     		oneOf(mockViewCSWRecordFactory).toView(mockCSWRecord2);will(returnValue(viewCSWRecord2));
@@ -81,7 +81,7 @@ public class TestCSWController {
         }});
 
     	//Run the method, get our response rendered as a JSONObject
-    	ModelAndView mav = cswController.getCSWRecords();
+    	ModelAndView mav = cswController.getCSWRecords(mockHttpRequest);
     	mav.getView().render(mav.getModel(), mockHttpRequest, mockHttpResponse);
     	JSONObject jsonObj = JSONObject.fromObject(actualJSONResponse.toString());
 
@@ -111,7 +111,7 @@ public class TestCSWController {
         }});
 
     	//Run the method, get our response rendered as a JSONObject
-    	ModelAndView mav = cswController.getCSWRecords();
+    	ModelAndView mav = cswController.getCSWRecords(mockHttpRequest);
     	mav.getView().render(mav.getModel(), mockHttpRequest, mockHttpResponse);
     	JSONObject jsonObj = JSONObject.fromObject(actualJSONResponse.toString());
 
@@ -134,7 +134,7 @@ public class TestCSWController {
 
     	context.checking(new Expectations() {{
     		oneOf(mockCSWService).updateRecordsInBackground();
-    		oneOf(mockCSWService).getAllRecords();will(returnValue(new CSWRecord[] {mockCSWRecord1, mockCSWRecord2}));
+    		oneOf(mockCSWService).getAllRecords(mockHttpRequest);will(returnValue(new CSWRecord[] {mockCSWRecord1, mockCSWRecord2}));
 
     		oneOf(mockViewCSWRecordFactory).toView(mockCSWRecord1);will(returnValue(viewCSWRecord1));
     		oneOf(mockViewCSWRecordFactory).toView(mockCSWRecord2);will(throwException(new Exception()));
@@ -145,7 +145,7 @@ public class TestCSWController {
         }});
 
     	//Run the method, get our response rendered as a JSONObject
-    	ModelAndView mav = cswController.getCSWRecords();
+    	ModelAndView mav = cswController.getCSWRecords(mockHttpRequest);
     	mav.getView().render(mav.getModel(), mockHttpRequest, mockHttpResponse);
     	JSONObject jsonObj = JSONObject.fromObject(actualJSONResponse.toString());
 
