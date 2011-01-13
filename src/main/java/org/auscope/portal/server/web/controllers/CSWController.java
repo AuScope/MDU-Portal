@@ -1,5 +1,7 @@
 package org.auscope.portal.server.web.controllers;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.auscope.portal.csw.CSWRecord;
 import org.auscope.portal.server.util.PortalPropertyPlaceholderConfigurer;
 import org.auscope.portal.server.web.service.CSWService;
@@ -47,7 +49,7 @@ public class CSWController extends CSWRecordResponse {
      * @throws Exception
      */
     @RequestMapping("/getCSWRecords.do")
-    public ModelAndView getCSWRecords() {
+    public ModelAndView getCSWRecords(HttpServletRequest request) {
     	try {
 			this.cswService.updateRecordsInBackground();
 		} catch (Exception ex) {
@@ -57,7 +59,7 @@ public class CSWController extends CSWRecordResponse {
 
 		CSWRecord[] records = null;
 		try {
-			records = this.cswService.getAllRecords();
+			records = this.cswService.getAllRecords(request);
 		} catch (Exception e) {
 			log.error("error getting data records", e);
 			return generateJSONResponse(false, "Error getting data records", null);

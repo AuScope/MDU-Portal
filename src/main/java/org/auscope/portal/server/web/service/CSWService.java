@@ -2,6 +2,8 @@ package org.auscope.portal.server.web.service;
 
 import java.util.ArrayList;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,6 +68,10 @@ public class CSWService {
 
     	public synchronized long getLastTimeUpdated() {
     		return this.lastTimeUpdated;
+    	}
+    	
+    	public CSWServiceItem getServiceItem() {
+    		return this.serviceItem;
     	}
 
     	public synchronized String getlastCSWresponse() {
@@ -178,8 +184,8 @@ public class CSWService {
      * @return
      * @throws Exception
      */
-    public CSWRecord[] getAllRecords() throws Exception {
-    	return getFilteredRecords(null);
+    public CSWRecord[] getAllRecords(HttpServletRequest request) throws Exception {
+    	return getFilteredRecords(request, null);
     }
 
     /**
@@ -187,8 +193,8 @@ public class CSWService {
      * @return
      * @throws Exception
      */
-    public CSWRecord[] getWMSRecords() throws Exception {
-        return getFilteredRecords(OnlineResourceType.WMS);
+    public CSWRecord[] getWMSRecords(HttpServletRequest request) throws Exception {
+        return getFilteredRecords(request, OnlineResourceType.WMS);
     }
 
 
@@ -197,8 +203,8 @@ public class CSWService {
      * @return
      * @throws Exception
      */
-    public CSWRecord[] getWCSRecords() throws Exception {
-        return getFilteredRecords(OnlineResourceType.WCS);
+    public CSWRecord[] getWCSRecords(HttpServletRequest request) throws Exception {
+        return getFilteredRecords(request, OnlineResourceType.WCS);
     }
 
     /**
@@ -206,8 +212,8 @@ public class CSWService {
      * @return
      * @throws Exception
      */
-    public CSWRecord[] getWFSRecords() throws Exception {
-        return getFilteredRecords(OnlineResourceType.WFS);
+    public CSWRecord[] getWFSRecords(HttpServletRequest request) throws Exception {
+        return getFilteredRecords(request, OnlineResourceType.WFS);
     }
 
     /**
@@ -216,7 +222,7 @@ public class CSWService {
      * @return
      * @throws Exception
      */
-    private synchronized CSWRecord[] getFilteredRecords(
+    private synchronized CSWRecord[] getFilteredRecords(HttpServletRequest request, 
     		CSWOnlineResource.OnlineResourceType... types) throws Exception {
 
         ArrayList<CSWRecord> records = new ArrayList<CSWRecord>();
@@ -224,11 +230,13 @@ public class CSWService {
         //Iterate EVERY record for EVERY service URL
         for (int i = 0; i < cache.length; i++)
         {
-	    	for(CSWRecord rec : cache[i].getCache()) {
-            	if ((types == null || rec.containsAnyOnlineResource(types))) {
-            		records.add(rec);
-                }
-            }
+			if (cache[i].getServiceItem().isUserAuthorized(request)) {
+				for(CSWRecord rec : cache[i].getCache()) {
+					if ((types == null || rec.containsAnyOnlineResource(types))) {
+						records.add(rec);
+					}
+				}
+			}
         }
 
         return records.toArray(new CSWRecord[records.size()]);

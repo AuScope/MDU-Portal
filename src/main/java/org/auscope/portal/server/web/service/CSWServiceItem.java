@@ -4,12 +4,17 @@ import java.util.Collection;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.auscope.portal.csw.CSWRecord;
+
 /**
  * A simple class that stores the URL of a CSW service along with extra security / misc information
  * 
  * @author VOT002
  */
 public class CSWServiceItem {
+	Log logger = LogFactory.getLog(CSWServiceItem.class);
     public final String PLACEHOLDER_RECORD_ID = "%recordID%";
 
 	private String serviceUrl;
@@ -42,7 +47,7 @@ public class CSWServiceItem {
 		this.restrictedRoleList = new String[restrictedRoleList.size()];
 		int i = 0;
 		for (Object role : restrictedRoleList) {
-			this.restrictedRoleList[i++] = role.toString(); 
+			this.restrictedRoleList[i++] = role.toString();
 		}
 	}
 	
@@ -69,6 +74,7 @@ public class CSWServiceItem {
 	 * @return
 	 */
 	public boolean isUserAuthorized(HttpServletRequest request) {
+		
 		//Shortcut for no restrictions
 		if (this.restrictedRoleList == null || this.restrictedRoleList.length == 0)
 			return true;

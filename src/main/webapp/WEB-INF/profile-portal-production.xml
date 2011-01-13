@@ -16,7 +16,9 @@
                 <ref bean="knownTypeMiningActivity" />
                 <ref bean="knownTypeBorehole" />
                 <ref bean="knownTypeGeodesy" />
+                <ref bean="knownTypeGeochron" />
                 <ref bean="knownTypeReports" />
+                <ref bean="knownTypeYilgarnGeochemistry"/>
                 <ref bean="knownTypeGeotransects" />
                 <ref bean="knownTypeSamplingPoint"/>
                 <ref bean="knownTypeFeatureCollection"/>
