@@ -659,7 +659,7 @@ Ext.onReady(function() {
             handleQuery(activeLayerRecord, cswRecords[i], wfsOnlineResource, filterParameters, function() {
                 //decrement the counter
                 finishedLoadingCounter--;
-                activeLayerRecord.setLastFilterParameters(filterParameters);
+                //activeLayerRecord.setLastFilterParameters(filterParameters);
                 //check if we can set the status to finished
                 if (finishedLoadingCounter <= 0) {
                 	activeLayerRecord.setIsLoading(false);
