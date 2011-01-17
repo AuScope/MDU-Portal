@@ -170,7 +170,7 @@ public class GSMLController {
             @RequestParam(required=false,	value="rockLithology") String rockLithology,
             @RequestParam(required=false,	value="weatherLithology") String weatherLithology,            
             @RequestParam(required=false, value="bbox") String bboxJson,
-            @RequestParam(required=false, value="maxFeatures", defaultValue="0") int maxFeatures,
+            //@RequestParam(required=false, value="maxFeatures", defaultValue="0") int maxFeatures,
             HttpServletRequest request) throws Exception  {
 
         
@@ -186,7 +186,7 @@ public class GSMLController {
 	            filterString = yilgarnGeochemistryFilter.getFilterStringBoundingBox(bbox);
 	        }
 	      
-	        HttpMethodBase method = methodMaker.makeMethod(serviceUrl, "gsml:GeologicUnit", filterString, maxFeatures);
+	        HttpMethodBase method = methodMaker.makeMethod(serviceUrl, "gsml:GeologicUnit", filterString, 0);
 	        RequestEntity ent;
 	        String body = null;
 	        if (method instanceof PostMethod) {
@@ -210,6 +210,38 @@ public class GSMLController {
         } catch (Exception e) {
             return this.handleExceptionResponse(e, serviceUrl, requestInfo);
         }
+    }
+    
+    @RequestMapping("/getYilgarnFeatureCount.do")
+    public ModelAndView requestYilgarnFeatureCount(@RequestParam("serviceUrl") final String serviceUrl,
+                                           @RequestParam(required=false,	value="geologicName") String geologicName,
+                                           @RequestParam(required=false,	value="rockLithology") String rockLithology,
+                                           @RequestParam(required=false,	value="weatherLithology") String weatherLithology,
+                                           @RequestParam(required=false, value="bbox") final String bboxJSONString,
+                                           HttpServletRequest request) throws Exception {
+    	
+    	FilterBoundingBox bbox = FilterBoundingBox.attemptParseFromJSON(bboxJSONString);
+    	
+    	JSONArray dataItems = new JSONArray();
+    	String filterString;
+        YilgarnGeochemistryFilter yilgarnGeochemistryFilter = new YilgarnGeochemistryFilter(geologicName, rockLithology, weatherLithology);
+    	String resultType = "hits";
+    	if (bbox == null) {
+            filterString = yilgarnGeochemistryFilter.getFilterStringAllRecords();
+        } else {
+            filterString = yilgarnGeochemistryFilter.getFilterStringBoundingBox(bbox);
+        }
+    	HttpMethodBase method = methodMaker.makeMethod(serviceUrl, "gsml:GeologicUnit" , filterString, resultType);
+        
+        String gmlResponse = serviceCaller.getMethodResponseAsString(method, 
+                                                                     serviceCaller.getHttpClient());
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        xPath.setNamespaceContext(new CSWNamespaceContext());
+
+        String extractCountExpression = "@numberOfFeatures";
+		String featureCountString = (String)xPath.evaluate(extractCountExpression, util.buildDomFromString(gmlResponse).getDocumentElement(), XPathConstants.STRING);
+		dataItems.add(featureCountString);
+		return new JSONModelAndView(dataItems);
     }
     
     

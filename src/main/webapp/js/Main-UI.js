@@ -654,10 +654,12 @@ Ext.onReady(function() {
         		filterParameters.bbox = null; //some WFS layer groupings may wish to disable bounding boxes
         	}*/
 
+        	
+        	
             handleQuery(activeLayerRecord, cswRecords[i], wfsOnlineResource, filterParameters, function() {
                 //decrement the counter
                 finishedLoadingCounter--;
-
+                activeLayerRecord.setLastFilterParameters(filterParameters);
                 //check if we can set the status to finished
                 if (finishedLoadingCounter <= 0) {
                 	activeLayerRecord.setIsLoading(false);
@@ -755,6 +757,10 @@ Ext.onReady(function() {
 			if (!url) {
 				url = 'getAllFeatures.do';
 				recordCount = 'getFeatureCount.do';
+			}
+			
+			if (url === 'doYilgarnGeochemistry.do') {
+				recordCount = 'getYilgarnFeatureCount.do';
 			}
 			var downloadManager = new FeatureDownloadManager(filterParameters.serviceUrl,recordCount,url, filterParameters, map);
     	
@@ -1070,10 +1076,11 @@ Ext.onReady(function() {
                 		for (var j = 0; j < wfsOnlineResources.length; j++) {
                 			var typeName = wfsOnlineResources[j].name;
                 			var url = wfsOnlineResources[j].url;
-                			var filterParameters = filterPanel.getLayout().activeItem == filterPanel.getComponent(0) ? "&typeName=" + typeName : filterPanel.getLayout().activeItem.getForm().getValues(true);
-
-                			keys.push('serviceUrls');
-                			values.push(window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + activeLayerRecord.getProxyUrl() + "?" + filterParameters + "&serviceUrl=" + url);
+                			var proxyUrl = activeLayerRecord.getProxyUrl()!== null ? activeLayerRecord.getProxyUrl() : 'getAllFeatures.do';
+                			var filterParameters = filterPanel.getLayout().activeItem == filterPanel.getComponent(0) ? "typeName=" + typeName : filterPanel.getLayout().activeItem.getForm().getValues(true);
+                			keys.push('serviceUrls');                			
+                			values.push(window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?" + filterParameters + "&serviceUrl=" + url);                			
+                			
                 		}
                 	}
 
