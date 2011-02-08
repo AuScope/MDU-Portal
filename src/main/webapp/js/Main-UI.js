@@ -277,7 +277,7 @@ Ext.onReady(function() {
     //    lowerCornerPoints : [numbers]
     //    upperCornerPoints : [numbers]
     //}
-    /*var fetchVisibleMapBounds = function(gMapInstance) {
+    var fetchVisibleMapBounds = function(gMapInstance) {
     	var mapBounds = gMapInstance.getBounds();
 		var sw = mapBounds.getSouthWest();
 		var ne = mapBounds.getNorthEast();
@@ -299,7 +299,7 @@ Ext.onReady(function() {
 				lowerCornerPoints : [Math.min(adjustedSWLng, adjustedNELng), Math.min(sw.lat(), ne.lat())],
 				upperCornerPoints : [Math.max(adjustedSWLng, adjustedNELng), Math.max(sw.lat(), ne.lat())]
 		};
-    };*/
+    };
 
     var filterButton = new Ext.Button({
         text     :'Apply Filter >>',
@@ -659,7 +659,7 @@ Ext.onReady(function() {
             handleQuery(activeLayerRecord, cswRecords[i], wfsOnlineResource, filterParameters, function() {
                 //decrement the counter
                 finishedLoadingCounter--;
-                //activeLayerRecord.setLastFilterParameters(filterParameters);
+                activeLayerRecord.setLastFilterParameters(filterParameters);
                 //check if we can set the status to finished
                 if (finishedLoadingCounter <= 0) {
                 	activeLayerRecord.setIsLoading(false);
@@ -1072,20 +1072,57 @@ Ext.onReady(function() {
                 if (cswRecords.length !== 0) {
                 	for (var i = 0; i < cswRecords.length; i++) {
                 		var wfsOnlineResources = cswRecords[i].getFilteredOnlineResources('WFS');
-
+                		var cswWfsRecordCount = cswRecords.length;
+                		var WfsOnlineResourceCount = wfsOnlineResources.length;
                 		for (var j = 0; j < wfsOnlineResources.length; j++) {
-                			var typeName = wfsOnlineResources[j].name;
-                			var url = wfsOnlineResources[j].url;
                 			var proxyUrl = activeLayerRecord.getProxyUrl()!== null ? activeLayerRecord.getProxyUrl() : 'getAllFeatures.do';
-                			var filterParameters = filterPanel.getLayout().activeItem == filterPanel.getComponent(0) ? "typeName=" + typeName : filterPanel.getLayout().activeItem.getForm().getValues(true);
-                			keys.push('serviceUrls');                			
-                			values.push(window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?" + filterParameters + "&serviceUrl=" + url);                			
+                			var lastFilters = null;
+                			var bbox = null;
+                			if(activeLayerRecord.getLastFilterParameters() !== null && activeLayerRecord.getLastFilterParameters() !== undefined){
+                				bbox = activeLayerRecord.getLastFilterParameters().bbox;
+                				lastFilters = activeLayerRecord.getLastFilterParameters();
+                				lastFilters.maxFeatures = 0;
+                			}                			
+                			var boundingbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map));
+                			if(bbox === null || bbox === undefined){
+                				keys.push('serviceUrls');
+                				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
+                    			values.push(Ext.urlEncode(lastFilters, prefixUrl));
+                    			chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+                			}
+                			else{
+                				if(bbox === boundingbox){
+                		    		keys.push('serviceUrls');
+                					var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
+                					values.push(Ext.urlEncode(lastFilters, prefixUrl));
+                					chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+                		    	}
+                		    	else{
+                					Ext.MessageBox.show({
+                		        		buttons:{yes:'Download Current', no:'Download Previous'},
+                		        		fn:function (buttonId) {
+                		        			if (buttonId == 'yes') {
+                		        				lastFilters.bbox = boundingbox;
+                		        				keys.push('serviceUrls');
+                		        				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
+                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
+                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+                		        			} else if (buttonId == 'no') {
+                		        				keys.push('serviceUrls');
+                		        				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
+                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
+                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+                		        			}
+                		        		},
+                		        		modal:true,
+                		        		msg:'Do you want to download data according to the previous bouding box or the current one?',
+                		        		title:'Warning: Different bounding box'
+                		        	});
+                		    	}
+                			}
                 			
                 		}
                 	}
-
-                    openWindowWithPost("downloadGMLAsZip.do?", 'WFS_Layer_Download_'+new Date().getTime(), keys, values);
-                    return;
                 }
 
                 cswRecords = activeLayerRecord.getCSWRecordsWithType('WCS');
@@ -1151,7 +1188,15 @@ Ext.onReady(function() {
         }
     });
 
-
+  
+    
+    var chkWfsCount = function(cswCount, onlineResourcesCount, cswWfsRecord,WfsOnlineResource, keys, values){
+    	if(cswCount >= (cswWfsRecord-1) && onlineResourcesCount >= (WfsOnlineResource-1))
+    	{
+    		openWindowWithPost("downloadGMLAsZip.do?", 'WFS_Layer_Download_'+new Date().getTime(), keys, values);
+            return;
+    	}
+    };
 
 
     /**

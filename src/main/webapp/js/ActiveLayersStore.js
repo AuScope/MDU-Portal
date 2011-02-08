@@ -3,6 +3,7 @@
  */
 ActiveLayersStore = function() {	
 	ActiveLayersStore.superclass.constructor.call(this, {
+		storeId     : 'active-layers-store',
 		reader		: new Ext.data.JsonReader({
 			idProperty		: 'id',
 			root			: 'records',

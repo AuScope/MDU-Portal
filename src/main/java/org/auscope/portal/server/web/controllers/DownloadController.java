@@ -67,11 +67,11 @@ public class DownloadController {
             //Our request may fail (due to timeout or otherwise)
             String responseString = null;
             JSONObject jsonObject = null;
+
             try {
                 responseString = serviceCaller.getMethodResponseAsString(method, client);
                 
                 logger.trace("Response: " + responseString);
-
                 jsonObject = JSONObject.fromObject( responseString );
             } catch (Exception ex) {
                 //Replace a failure exception with a JSONObject representing that exception
