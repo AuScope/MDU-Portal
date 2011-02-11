@@ -11,6 +11,9 @@ var map;
 var cswRecordStore = null;
 
 Ext.onReady(function() {
+	
+	Ext.QuickTips.init();
+
     var formFactory = new FormFactory();
     var searchBarThreshold = 6; //how many records do we need to have before we show a search bar
 
@@ -252,6 +255,7 @@ Ext.onReady(function() {
     //-----------Known Features Panel Configurations (Groupings of various CSWRecords)
     var knownLayersPanel = new KnownLayerGridPanel('kft-layers-panel',
 												    		'Featured Layers',
+												    		'Layers or layer groups with custom handlers',
 												    		knownLayersStore,
 												    		cswRecordStore,
 												    		knownLayerAddHandler,
@@ -271,6 +275,7 @@ Ext.onReady(function() {
     };
     var mapLayersPanel = new CSWRecordGridPanel('wms-layers-panel',
 									    		'Map Layers',
+									    		'Other layers present in the Registry',
 									    		cswRecordStore,
 									    		cswPanelAddHandler,
 									    		mapLayersFilter,
@@ -283,6 +288,7 @@ Ext.onReady(function() {
     //------ Custom Layers
     var customLayersPanel = new CustomLayersGridPanel('custom-layers-panel',
 										    		'Custom Layers',
+										    		'Add your own WMS Layers',
 										    		customLayersStore,
 										    		cswPanelAddHandler,
 										    		showBoundsCSWRecord,
@@ -332,7 +338,7 @@ Ext.onReady(function() {
      * Used to show extra details for querying services
      */
     var filterPanel = new Ext.Panel({
-        title: "Filter Properties",
+        title: '<span qtip="Layer Specific filter properties. <br>Dont forget to hit \'Apply Filter\'">Filter Properties</span>',
         region: 'south',
         split: true,
         layout: 'card',
@@ -440,6 +446,7 @@ Ext.onReady(function() {
 	            if (filterPanelObj.supportsFiltering) {
 	                filterButton.enable();
 	                filterButton.toggle(true);
+
 	            } else {
 	            	//Otherwise the layer doesn't need filtering, just display it immediately
 	                loadLayer(activeLayerRecord);
@@ -699,6 +706,7 @@ Ext.onReady(function() {
         	/*if (parentKnownLayer && parentKnownLayer.getDisableBboxFiltering()) {
         		filterParameters.bbox = null; //some WFS layer groupings may wish to disable bounding boxes
         	}*/
+
 
         	filterParameters.typeName = wfsOnlineResource.name;           
         	

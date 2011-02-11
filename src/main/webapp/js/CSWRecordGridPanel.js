@@ -15,7 +15,7 @@
  * moveToBoundsHandler: function(CSWRecord) called when the user wants to find the location of the record bounds                                              
  *                    
  */
-CSWRecordGridPanel = function(id, title, cswRecordStore, addLayerHandler, cswRecordFilter, visibleFilterHandler, showBoundsHandler, moveToBoundsHandler) {
+CSWRecordGridPanel = function(id, title, description, cswRecordStore, addLayerHandler, cswRecordFilter, visibleFilterHandler, showBoundsHandler, moveToBoundsHandler) {
 	this.addLayerHandler = addLayerHandler;
 	this.cswRecordFilter = cswRecordFilter;
 	//Create our filtered datastore copy
@@ -40,7 +40,7 @@ CSWRecordGridPanel = function(id, title, cswRecordStore, addLayerHandler, cswRec
         autoExpandColumn : 'title',
         plugins          : [ rowExpander ],
         viewConfig       : {scrollOffset: 0, forceFit:true},
-        title            : title,
+        title            : '<span qtip="' + description + '">' + title + '</span>',
         region           :'north',
         split            : true,
         height           : 160,

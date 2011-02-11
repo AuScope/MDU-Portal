@@ -12,7 +12,7 @@
  * moveToBoundsHandler: function(KnownLayerRecord) called when the user wants to find the location of the record bounds
  *                    
  */
-KnownLayerGridPanel = function(id, title, knownFeatureTypeStore, cswRecordStore, addLayerHandler, visibleLayerHandler, showBoundsHandler, moveToBoundsHandler) {
+KnownLayerGridPanel = function(id, title, description, knownFeatureTypeStore, cswRecordStore, addLayerHandler, visibleLayerHandler, showBoundsHandler, moveToBoundsHandler) {
 	this.addLayerHandler = addLayerHandler;
 	
 	//This is so we can reference our search panel
@@ -31,7 +31,7 @@ KnownLayerGridPanel = function(id, title, knownFeatureTypeStore, cswRecordStore,
         autoExpandColumn : 'title',
         plugins          : [ rowExpander ],
         viewConfig       : {scrollOffset: 0, forceFit:true},
-        title            : title,
+        title            : '<span qtip="' + description + '">' + title + '</span>',
         region           :'north',
         split            : true,
         height           : 160,

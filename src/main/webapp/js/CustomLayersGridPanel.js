@@ -14,7 +14,7 @@
  * moveToBoundsHandler: function(CSWRecord) called when the user wants to find the location of the record bounds                                              
  *                    
  */
-CustomLayersGridPanel = function(id, title, cswRecordStore, addLayerHandler, showBoundsHandler, moveToBoundsHandler) {
+CustomLayersGridPanel = function(id, title, description, cswRecordStore, addLayerHandler, showBoundsHandler, moveToBoundsHandler) {
 	this.addLayerHandler = addLayerHandler;
 	
 	var rowExpander = new Ext.grid.RowExpander({
@@ -27,7 +27,7 @@ CustomLayersGridPanel = function(id, title, cswRecordStore, addLayerHandler, sho
         autoExpandColumn : 'title',
         plugins          : [ rowExpander ],
         viewConfig       : {scrollOffset: 0, forceFit:true},
-        title            : title,
+        title            : '<span qtip="' + description + '">' + title + '</span>',
         region           :'north',
         split            : true,
         height           : 160,

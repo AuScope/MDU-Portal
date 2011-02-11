@@ -16,6 +16,7 @@ MineFilterForm = function(id) {
     this.isFormLoaded = true; //We aren't reliant on any remote downloads
     
     MineFilterForm.superclass.constructor.call(this, {
+
         id          : String.format('{0}',id),
         border      : false,
         autoScroll  : true,
@@ -29,16 +30,28 @@ MineFilterForm = function(id) {
         autoHeight: true,
         items       : [{
             xtype      :'fieldset',
-            title      : 'Mine Filter Properties',
+            title      : '<span qtip="Please enter the filter constraints then hit \'Apply Filter\'">' +
+			 			'Mine Filter Properties' +
+			 			'</span>',
             autoHeight : true,
             items      : [
             {
                 anchor     : '100%',
                 xtype      : 'textfield',
-                fieldLabel : 'Mine Name',
+                fieldLabel : '<span qtip="Wildcards: \'!\' escape character; \'*\' zero or more, \'#\' just one character.">' +
+   			 				'Mine Name' +
+   			 				'</span>',
                 name       : 'mineName'
-            }]
+            }
+            
+            ]
+
+           
+
         }]
+
+        
+
     });
     //return thePanel;
 };
@@ -47,3 +60,4 @@ MineFilterForm = function(id) {
 Ext.extend(MineFilterForm, BaseFilterForm, {
     
 });;
+

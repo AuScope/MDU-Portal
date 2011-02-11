@@ -100,7 +100,7 @@ MineralOccurrenceFilterForm = function(id) {
         anchor         : '100%',
         name           : 'commodityNameDisplayed', /* this just returns the values from displayField! */
         hiddenName     : 'commodityName',    /* this returns the values from valueField! */
-        fieldLabel     : 'Commodity',
+        fieldLabel     : '<span qtip="Please select a commodity from the Commodity Vocabulary. Powered by SISSVoc">' + 'Commodity' + '</span>',
         labelAlign     : 'right',
         forceSelection : true,
         mode           : 'local',
@@ -189,7 +189,9 @@ MineralOccurrenceFilterForm = function(id) {
         delayFormPopulation : true,
         items: [{
             xtype      : 'fieldset',
-            title      : 'Mineral Occurrence Filter Properties',
+            title      : '<span qtip="Please enter the filter constraints then hit \'Apply Filter\'">' +
+            			'Mineral Occurrence Filter Properties' +
+            			'</span>',
             autoHeight : true,
             labelAlign : 'right',
             bodyStyle   : 'padding:0px',

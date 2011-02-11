@@ -65,13 +65,17 @@ MiningActivityFilterForm = function(id) {
         bodyStyle   : 'padding:5px',
         items: [{
             xtype:'fieldset',
-            title: 'Mining Activity Filter Properties',
+            title: '<span qtip="Please enter the filter constraints then hit \'Apply Filter\'">' +
+     	   'Mining Activity Filter Properties' +
+    	   '</span>',
             //autoHeight:true,
             defaultType: 'textfield',
             defaults: {anchor: '100%'},
             items :[
             {
-                fieldLabel: 'Associated Mine',
+                fieldLabel: '<span qtip="Wildcards: \'!\' escape character; \'*\' zero or more, \'#\' just one character.">' +
+							'Associated Mine' +
+							'</span>',
                 name: 'mineName'
             },
             /*new Ext.form.ComboBox({
