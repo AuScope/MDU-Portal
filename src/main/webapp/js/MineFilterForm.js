@@ -13,7 +13,9 @@ MineFilterForm = function(id) {
         }, [{name:'mineDisplayName', mapping:'mineDisplayName'}])
     });*/
     
-    Ext.FormPanel.call(this, {
+    this.isFormLoaded = true; //We aren't reliant on any remote downloads
+    
+    MineFilterForm.superclass.constructor.call(this, {
         id          : String.format('{0}',id),
         border      : false,
         autoScroll  : true,
@@ -35,49 +37,13 @@ MineFilterForm = function(id) {
                 xtype      : 'textfield',
                 fieldLabel : 'Mine Name',
                 name       : 'mineName'
-            }
-            /*new Ext.form.ComboBox({
-                anchor: '100%',
-                autoWidth: true,
-                name: 'mineName',
-                displayField:'mineDisplayName',
-                editable: true,
-                fieldLabel: 'Mine Name',
-                forceSelection: true,
-                listWidth: 300,            // 'auto' does not work in IE6
-                mode: 'remote',
-                selectOnFocus: true,
-                store: mineNamesStore,
-                triggerAction: 'all',
-                typeAhead: true,
-                valueField:'mineDisplayName',
-                xtype: 'combo'
-            })*/
-            ]
+            }]
         }]
-        /*buttons: [{
-            text: 'Show Me >>',
-            handler: function() {
-                preSubmitFunction();
-                thePanel.getForm().submit({
-                    url:submitUrl,
-                    waitMsg:'Running query...',
-                    params: {serviceUrl: serviceUrl},
-                    success: successFunction,
-                    failure: function(form, action) {
-                        Ext.MessageBox.show({
-                            title: 'Filter Failed',
-                            msg: action.result.msg,
-                            buttons: Ext.MessageBox.OK,
-                            animEl: 'mb9',
-                            icon: Ext.MessageBox.ERROR
-                        });
-                    }
-                });
-            }
-        }]*/
     });
     //return thePanel;
 };
 
-MineFilterForm.prototype = new Ext.FormPanel();
+
+Ext.extend(MineFilterForm, BaseFilterForm, {
+    
+});;

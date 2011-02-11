@@ -14,29 +14,6 @@ MineralOccurrenceFilterForm = function(id) {
             ['UKN', 'urn:ogc:def:nil:OGC::missing']
         ];
 
-            // Those ones are not required but leaving them in case ...
-            //['CUB M/HA', 'urn:ogc:def:uom:UCUM::m3.har-1'],
-            //['TONNE/M', 'urn:ogc:def:uom:UCUM::t.m-1'],
-            //['TONNE/100M', 'urn:ogc:def:uom:UCUM::t.hm-1'],
-            //['GM/TONNE', 'urn:ogc:def:uom:UCUM::g.t-1'],
-            //['KG/TONNE', 'urn:ogc:def:uom:UCUM::kg.t-1'],
-            //['MILL TONNE', 'urn:ogc:def:uom:UCUM::Mt'],
-            //['M', 'urn:ogc:def:uom:UCUM::m'],
-            //['%', 'urn:ogc:def:uom:UCUM::%25'],
-            //['SQ M', 'urn:ogc:def:uom:UCUM::m2'],
-            //['MA', 'urn:ogc:def:uom:UCUM::Ma'],
-            //['NOUNIT', 'urn:ogc:def:nil:OGC::inapplicable'],
-            //['PPM', 'urn:ogc:def:uom:UCUM::%5Bppm%5D'],
-            //['PPB', 'urn:ogc:def:uom:UCUM::%5Bppb%5D'],
-            //['MM', 'urn:ogc:def:uom:UCUM::mm'],
-            //['UM', 'urn:ogc:def:uom:UCUM::um'],
-            //['GCOUNT', 'urn:ogc:def:uom:UCUM::%7BGCOUNT%7D'],
-            //['HA', 'urn:ogc:def:uom:UCUM::har'],
-            //['MESH', 'urn:ogc:def:uom:UCUM::%5Bmesh_i%5D'],
-            //['SI', 'urn:ogc:def:uom:UCUM::%7BSI%7D'],
-            //['GM/CC', 'urn:ogc:def:uom:UCUM::g.cm-3']
-
-
     var unitOfMeasureStore = new Ext.data.SimpleStore({
         fields : ['unitLabel', 'urn'],
         data   : unitsOfMeasure
@@ -110,7 +87,13 @@ MineralOccurrenceFilterForm = function(id) {
         ])
     });
 
-    commodityStore.reload();
+    var callingInstance = this;
+    commodityStore.load( {
+        callback : function() {
+            callingInstance.isFormLoaded = true;
+            callingInstance.fireEvent('formloaded');
+        }
+    });
 
     var commodityNameCombo = new Ext.form.ComboBox({
         tpl: '<tpl for="."><div ext:qtip="{label}" class="x-combo-list-item">{label}</div></tpl>',
@@ -191,8 +174,7 @@ MineralOccurrenceFilterForm = function(id) {
 
 
     //-----------Panel
-
-    Ext.FormPanel.call(this,{
+    MineralOccurrenceFilterForm.superclass.constructor.call(this, {
         id          : String.format('{0}',id),
         border      : false,
         autoScroll  : true,
@@ -204,6 +186,7 @@ MineralOccurrenceFilterForm = function(id) {
         bodyStyle   : 'padding:5px',
         autoHeight:    true,
         layout: 'anchor',
+        delayFormPopulation : true,
         items: [{
             xtype      : 'fieldset',
             title      : 'Mineral Occurrence Filter Properties',
@@ -264,4 +247,6 @@ MineralOccurrenceFilterForm = function(id) {
     });
 };
 
-MineralOccurrenceFilterForm.prototype = new Ext.FormPanel();
+Ext.extend(MineralOccurrenceFilterForm, BaseFilterForm, {
+    
+});

@@ -18,7 +18,8 @@ ActiveLayersStore = function() {
 			    {   name	: 'keyIconHtml'     },	//String: HTML that will appear under the 'key' column
 			    {   name	: 'isLoading' 		},	//boolean: Whether this layer is currently 'loading'
 			    {   name	: 'layerVisible'    },	//boolean: Whether the layer is currently visible
-			    {   name	: 'opacity' 		}	//number: The layers opacity (if applicable) from [0, 1],
+			    {   name	: 'opacity' 		},	//number: The layers opacity (if applicable) from [0, 1],
+			    {   name    : 'source'          }   //String: Will be either ['KnownLayer','CSWRecord']
 		    ]
 		})
 	});
@@ -61,7 +62,8 @@ Ext.extend(ActiveLayersStore, Ext.data.Store, {
 			keyIconHtml	: keyIconHtml,
 			isLoading	: false,
 			layerVisible: true,
-			opacity		: 1
+			opacity		: 1,
+			source      : 'CSWRecord'
 		});
 		
 		return this.getByCSWRecord(cswRecord);
@@ -86,7 +88,8 @@ Ext.extend(ActiveLayersStore, Ext.data.Store, {
 			keyIconHtml	: '<img width="16" height="16" src="' + knownLayerRecord.getIconUrl() + '">',
 			isLoading	: false,
 			layerVisible: true,
-			opacity		: 1
+			opacity		: 1,
+			source      : 'KnownLayer'
 		});
 		
 		
