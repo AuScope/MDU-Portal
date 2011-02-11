@@ -563,6 +563,8 @@ Ext.onReady(function() {
         overlayManager.markerManager.refresh();
 
     	responseTooltip.addResponse("", numRecords + " records retrieved.");
+    	
+    	activeLayerRecord.setHasData(numRecords > 0);
     };
 
     //The WCS handler will create a representation of a coverage on the map for a given WCS record
@@ -628,6 +630,10 @@ Ext.onReady(function() {
 
                 overlayManager.addOverlay(new GTileLayerOverlay(tileLayer));
             }
+            
+            if(wcsOnlineResources.length > 0 || wmsOnlineResources.length > 0) {
+    			activeLayerRecord.setHasData(true);
+    		}
     	}
 
     	//This will update the Z order of our WMS layers
@@ -671,6 +677,7 @@ Ext.onReady(function() {
 
         //Begin loading from each service
         activeLayerRecord.setIsLoading(true);
+        activeLayerRecord.setHasData(false);
         
         for (var i = 0; i < cswRecords.length; i++) {
         	//Assumption - We will only have 1 WFS linked per CSW
@@ -767,6 +774,11 @@ Ext.onReady(function() {
 
                     //store the status
                     responseTooltip.addResponse(filterParameters.serviceUrl, (markers.length + overlays.length) + " records retrieved.");
+                    
+                    if(markers.length > 0 || overlays.length > 0) {
+                    	activeLayerRecord.setHasData(true);
+                    }
+                    
                 } else {
                     //store the status
                 	responseTooltip.addResponse(filterParameters.serviceUrl, jsonResponse.msg);
@@ -837,6 +849,9 @@ Ext.onReady(function() {
 		        tileLayer.opacity = activeLayerRecord.getOpacity();
 
 		        overlayManager.addOverlay(new GTileLayerOverlay(tileLayer));
+    		}
+    		if(wmsOnlineResources.length > 0) {
+    			activeLayerRecord.setHasData(true);
     		}
     	}
 
@@ -935,6 +950,8 @@ Ext.onReady(function() {
             var theRow = activeLayersPanel.getView().findRow(row);
             var activeLayerRecord = new ActiveLayersRecord(activeLayersPanel.getStore().getAt(theRow.rowIndex));
 
+            var autoWidth = !Ext.isIE6 && !Ext.isIE7;
+            
             //This is for the key/legend column
             if (col.cellIndex == '1') {
 
@@ -947,7 +964,13 @@ Ext.onReady(function() {
 	                    trackMouse: true,
 	                    showDelay:60,
 	                    autoHeight:true,
-	                    autoWidth: true
+	                    autoWidth: autoWidth,
+	                    listeners : {
+                            hide : function(component) {
+                                component.destroy();
+                            }
+                        }
+	                   
 	                });
             	}
             }
@@ -969,22 +992,50 @@ Ext.onReady(function() {
                     trackMouse: true,
                     showDelay:60,
                     autoHeight:true,
-                    autoWidth: true
+                    autoWidth: autoWidth,
+                    listeners : {
+                        hide : function(component) {
+                            component.destroy();
+                        }
+                    }
                 });
             }
             //this is the column for download link icons
             else if (col.cellIndex == '5') {
-                activeLayersToolTip = new Ext.ToolTip({
-                    target: e.target ,
-                    //title: 'Status Information',
-                    autoHide : true,
-                    html: 'Download data for this layer.' ,
-                    anchor: 'bottom',
-                    trackMouse: true,
-                    showDelay:60,
-                    autoHeight:true,
-                    autoWidth: true
-                });
+            	if(activeLayerRecord.hasData()) {
+	                activeLayersToolTip = new Ext.ToolTip({
+	                    target: e.target ,
+	                    //title: 'Status Information',
+	                    autoHide : true,
+	                    html: 'Download data for this layer.' ,
+	                    anchor: 'bottom',
+	                    trackMouse: true,
+	                    showDelay:60,
+	                    autoHeight:true,
+	                    autoWidth: autoWidth,
+                        listeners : {
+                            hide : function(component) {
+                                component.destroy();
+                            }
+                        }
+	                });
+            	} else {
+                    activeLayersToolTip = new Ext.ToolTip({
+                        target: e.target ,
+                        autoHide : true,
+                        html: 'No download is available.' ,
+                        anchor: 'bottom',
+                        trackMouse: true,
+                        showDelay:60,
+                        autoHeight:true,
+                        autoWidth: autoWidth,
+                        listeners : {
+                            hide : function(component) {
+                                component.destroy();
+                            }
+                        }
+                    });
+                }                
             }
         }
     });
@@ -1104,127 +1155,129 @@ Ext.onReady(function() {
             }
             //this is the column for download link icons
             else if (col.cellIndex == '5') {
-            	var keys = [];
-                var values = [];
-
-                //We simplify things by treating the record list as a single type of WFS, WCS or WMS
-                //So lets find the first record with a type we can choose (Prioritise WFS -> WCS -> WMS)
-                var cswRecords = activeLayerRecord.getCSWRecordsWithType('WFS');
-                if (cswRecords.length !== 0) {
-                	for (var i = 0; i < cswRecords.length; i++) {
-                		var wfsOnlineResources = cswRecords[i].getFilteredOnlineResources('WFS');
-                		var cswWfsRecordCount = cswRecords.length;
-                		var WfsOnlineResourceCount = wfsOnlineResources.length;
-                		for (var j = 0; j < wfsOnlineResources.length; j++) {
-                			var proxyUrl = activeLayerRecord.getProxyUrl()!== null ? activeLayerRecord.getProxyUrl() : 'getAllFeatures.do';
-                			var lastFilters = null;
-                			var bbox = null;
-                			if(activeLayerRecord.getLastFilterParameters() !== null && activeLayerRecord.getLastFilterParameters() !== undefined){
-                				bbox = activeLayerRecord.getLastFilterParameters().bbox;
-                				lastFilters = activeLayerRecord.getLastFilterParameters();
-                				lastFilters.maxFeatures = 0;
-                			}                			
-                			var boundingbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map));
-                			if(bbox === null || bbox === undefined){
-                				keys.push('serviceUrls');
-                				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
-                    			values.push(Ext.urlEncode(lastFilters, prefixUrl));
-                    			chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
-                			}
-                			else{
-                				if(bbox === boundingbox){
-                		    		keys.push('serviceUrls');
-                					var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
-                					values.push(Ext.urlEncode(lastFilters, prefixUrl));
-                					chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
-                		    	}
-                		    	else{
-                					Ext.MessageBox.show({
-                		        		buttons:{yes:'Download Current', no:'Download Previous'},
-                		        		fn:function (buttonId) {
-                		        			if (buttonId == 'yes') {
-                		        				lastFilters.bbox = boundingbox;
-                		        				keys.push('serviceUrls');
-                		        				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
-                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
-                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
-                		        			} else if (buttonId == 'no') {
-                		        				keys.push('serviceUrls');
-                		        				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
-                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
-                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
-                		        			}
-                		        		},
-                		        		modal:true,
-                		        		msg:'Do you want to download data according to the previous bouding box or the current one?',
-                		        		title:'Warning: Different bounding box'
-                		        	});
-                		    	}
-                			}
-                			
-                		}
-                	}
-                }
-
-                cswRecords = activeLayerRecord.getCSWRecordsWithType('WCS');
-                if (cswRecords.length !== 0) {
-                	//Assumption - we only expect 1 WCS
-            		var wcsOnlineResource = cswRecords[0].getFilteredOnlineResources('WCS')[0];
-            		showWCSDownload(wcsOnlineResource.url, wcsOnlineResource.name);
-            		return;
-                }
-
-                //For WMS we download every WMS
-                cswRecords = activeLayerRecord.getCSWRecordsWithType('WMS');
-                if (cswRecords.length !== 0) {
-                	for (var i = 0; i < cswRecords.length; i++) {
-	                	var wmsOnlineResources = cswRecords[i].getFilteredOnlineResources('WMS');
-	    				for (var j = 0; j < wmsOnlineResources.length; j++) {
-	    					var boundBox = (map.getBounds().getSouthWest().lng() < 0 ? map.getBounds().getSouthWest().lng() + 360.0 : map.getBounds().getSouthWest().lng()) + "," +
-	                        map.getBounds().getSouthWest().lat() + "," +
-	                        (map.getBounds().getNorthEast().lng() < 0 ? map.getBounds().getNorthEast().lng() + 360.0 : map.getBounds().getNorthEast().lng()) + "," +
-	                        map.getBounds().getNorthEast().lat();
-
-					         var url = wmsOnlineResources[j].url;
-					         var typeName = wmsOnlineResources[j].name;
-
-					         var last_char = url.charAt(url.length - 1);
-					         if ((last_char !== "?") && (last_char !== "&")) {
-					             if (url.indexOf('?') == -1) {
-					                 url += "?";
-					             } else {
-					                 url += "&";
-					             }
-					         }
-
-					         url += "REQUEST=GetMap";
-					         url += "&SERVICE=WMS";
-					         url += "&VERSION=1.1.0";
-					         url += "&LAYERS=" + typeName;
-					         if (this.styles) {
-					             url += "&STYLES=" + this.styles;
-					         } else {
-					             url += "&STYLES="; //Styles parameter is mandatory, using a null string ensures default style
-					         }
-					         /*
-					          if (this.sld)
-					          url += "&SLD=" + this.sld;*/
-					         url += "&FORMAT=" + "image/png";
-					         url += "&BGCOLOR=0xFFFFFF";
-					         url += "&TRANSPARENT=TRUE";
-					         url += "&SRS=" + "EPSG:4326";
-					         url += "&BBOX=" + boundBox;
-					         url += "&WIDTH=" + map.getSize().width;
-					         url += "&HEIGHT=" + map.getSize().height;
-
-					         keys.push('serviceUrls');
-					         values.push(url);
-	    				}
+            	if(activeLayerRecord.hasData()) {
+	            	var keys = [];
+	                var values = [];
+	
+	                //We simplify things by treating the record list as a single type of WFS, WCS or WMS
+	                //So lets find the first record with a type we can choose (Prioritise WFS -> WCS -> WMS)
+	                var cswRecords = activeLayerRecord.getCSWRecordsWithType('WFS');
+	                if (cswRecords.length !== 0) {
+	                	for (var i = 0; i < cswRecords.length; i++) {
+	                		var wfsOnlineResources = cswRecords[i].getFilteredOnlineResources('WFS');
+	                		var cswWfsRecordCount = cswRecords.length;
+	                		var WfsOnlineResourceCount = wfsOnlineResources.length;
+	                		for (var j = 0; j < wfsOnlineResources.length; j++) {
+	                			var proxyUrl = activeLayerRecord.getProxyUrl()!== null ? activeLayerRecord.getProxyUrl() : 'getAllFeatures.do';
+	                			var lastFilters = null;
+	                			var bbox = null;
+	                			if(activeLayerRecord.getLastFilterParameters() !== null && activeLayerRecord.getLastFilterParameters() !== undefined){
+	                				bbox = activeLayerRecord.getLastFilterParameters().bbox;
+	                				lastFilters = activeLayerRecord.getLastFilterParameters();
+	                				lastFilters.maxFeatures = 0;
+	                			}                			
+	                			var boundingbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map));
+	                			if(bbox === null || bbox === undefined){
+	                				keys.push('serviceUrls');
+	                				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
+	                    			values.push(Ext.urlEncode(lastFilters, prefixUrl));
+	                    			chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+	                			}
+	                			else{
+	                				if(bbox === boundingbox){
+	                		    		keys.push('serviceUrls');
+	                					var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
+	                					values.push(Ext.urlEncode(lastFilters, prefixUrl));
+	                					chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+	                		    	}
+	                		    	else{
+	                					Ext.MessageBox.show({
+	                		        		buttons:{yes:'Download Current', no:'Download Previous'},
+	                		        		fn:function (buttonId) {
+	                		        			if (buttonId == 'yes') {
+	                		        				lastFilters.bbox = boundingbox;
+	                		        				keys.push('serviceUrls');
+	                		        				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
+	                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
+	                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+	                		        			} else if (buttonId == 'no') {
+	                		        				keys.push('serviceUrls');
+	                		        				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
+	                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
+	                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+	                		        			}
+	                		        		},
+	                		        		modal:true,
+	                		        		msg:'Do you want to download data according to the previous bouding box or the current one?',
+	                		        		title:'Warning: Different bounding box'
+	                		        	});
+	                		    	}
+	                			}
+	                			
+	                		}
+	                	}
 	                }
-
-                	openWindowWithPost("downloadWMSAsZip.do?", 'WMS_Layer_Download_'+new Date().getTime(), keys, values);
-                	return;
-                }
+	
+	                cswRecords = activeLayerRecord.getCSWRecordsWithType('WCS');
+	                if (cswRecords.length !== 0) {
+	                	//Assumption - we only expect 1 WCS
+	            		var wcsOnlineResource = cswRecords[0].getFilteredOnlineResources('WCS')[0];
+	            		showWCSDownload(wcsOnlineResource.url, wcsOnlineResource.name);
+	            		return;
+	                }
+	
+	                //For WMS we download every WMS
+	                cswRecords = activeLayerRecord.getCSWRecordsWithType('WMS');
+	                if (cswRecords.length !== 0) {
+	                	for (var i = 0; i < cswRecords.length; i++) {
+		                	var wmsOnlineResources = cswRecords[i].getFilteredOnlineResources('WMS');
+		    				for (var j = 0; j < wmsOnlineResources.length; j++) {
+		    					var boundBox = (map.getBounds().getSouthWest().lng() < 0 ? map.getBounds().getSouthWest().lng() + 360.0 : map.getBounds().getSouthWest().lng()) + "," +
+		                        map.getBounds().getSouthWest().lat() + "," +
+		                        (map.getBounds().getNorthEast().lng() < 0 ? map.getBounds().getNorthEast().lng() + 360.0 : map.getBounds().getNorthEast().lng()) + "," +
+		                        map.getBounds().getNorthEast().lat();
+	
+						         var url = wmsOnlineResources[j].url;
+						         var typeName = wmsOnlineResources[j].name;
+	
+						         var last_char = url.charAt(url.length - 1);
+						         if ((last_char !== "?") && (last_char !== "&")) {
+						             if (url.indexOf('?') == -1) {
+						                 url += "?";
+						             } else {
+						                 url += "&";
+						             }
+						         }
+	
+						         url += "REQUEST=GetMap";
+						         url += "&SERVICE=WMS";
+						         url += "&VERSION=1.1.0";
+						         url += "&LAYERS=" + typeName;
+						         if (this.styles) {
+						             url += "&STYLES=" + this.styles;
+						         } else {
+						             url += "&STYLES="; //Styles parameter is mandatory, using a null string ensures default style
+						         }
+						         /*
+						          if (this.sld)
+						          url += "&SLD=" + this.sld;*/
+						         url += "&FORMAT=" + "image/png";
+						         url += "&BGCOLOR=0xFFFFFF";
+						         url += "&TRANSPARENT=TRUE";
+						         url += "&SRS=" + "EPSG:4326";
+						         url += "&BBOX=" + boundBox;
+						         url += "&WIDTH=" + map.getSize().width;
+						         url += "&HEIGHT=" + map.getSize().height;
+	
+						         keys.push('serviceUrls');
+						         values.push(url);
+		    				}
+		                }
+	
+	                	openWindowWithPost("downloadWMSAsZip.do?", 'WMS_Layer_Download_'+new Date().getTime(), keys, values);
+	                	return;
+	                }
+	            }
             }
         }
     });
