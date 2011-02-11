@@ -672,48 +672,35 @@ Ext.onReady(function() {
         //Begin loading from each service
         activeLayerRecord.setIsLoading(true);
         
-        //Generate our filter parameters for this service (or use the override values if specified)
-        var filterParameters = { };
-        if (overrideFilterParams) {
-            filterParameters = overrideFilterParams;
-        } else {
-            if (filterPanel.getLayout().activeItem != filterPanel.getComponent(0)) {
-                filterParameters = filterPanel.getLayout().activeItem.getForm().getValues();
-            }
-            filterParameters.maxFeatures = MAX_FEATURES; // limit our feature request to 200 so we don't overwhelm the browser
-            filterParameters.bbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map)); // This line activates bbox support AUS-1597
-            if (parentKnownLayer && parentKnownLayer.getDisableBboxFiltering()) {
-                filterParameters.bbox = null; //some WFS layer groupings may wish to disable bounding boxes
-            }
-        }
-        
-        activeLayerRecord.setLastFilterParameters(filterParameters);       
-        
         for (var i = 0; i < cswRecords.length; i++) {
         	//Assumption - We will only have 1 WFS linked per CSW
         	var wfsOnlineResource = cswRecords[i].getFilteredOnlineResources('WFS')[0];
 
-        	//Generate our filter parameters for this service
-        	var filterParameters = null;
-            if (filterPanel.getLayout().activeItem == filterPanel.getComponent(0)) {
-            	filterParameters = {typeName : wfsOnlineResource.name};
+            //Generate our filter parameters for this service (or use the override values if specified)
+            var filterParameters = { };
+            
+            if (overrideFilterParams) {
+                filterParameters = overrideFilterParams;
             } else {
-            	filterParameters = filterPanel.getLayout().activeItem.getForm().getValues();
-            }
-            filterParameters.maxFeatures = MAX_FEATURES; // limit our feature request to 200 so we don't overwhelm the browser
-        	//filterParameters.bbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map)); // This line activates bbox support AUS-1597
+                if (filterPanel.getLayout().activeItem != filterPanel.getComponent(0)) {
+                    filterParameters = filterPanel.getLayout().activeItem.getForm().getValues();
+                }
+                filterParameters.maxFeatures = MAX_FEATURES; // limit our feature request to 200 so we don't overwhelm the browser
+                filterParameters.bbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map)); // This line activates bbox support AUS-1597
+//                if (parentKnownLayer && parentKnownLayer.getDisableBboxFiltering()) {
+//                    filterParameters.bbox = null; //some WFS layer groupings may wish to disable bounding boxes
+//                }
+            }           
+            activeLayerRecord.setLastFilterParameters(filterParameters);    
+            
+        	//Generate our filter parameters for this service
         	filterParameters.serviceUrl = wfsOnlineResource.url;
-        	/*if (parentKnownLayer && parentKnownLayer.getDisableBboxFiltering()) {
-        		filterParameters.bbox = null; //some WFS layer groupings may wish to disable bounding boxes
-        	}*/
-
-
         	filterParameters.typeName = wfsOnlineResource.name;           
         	
             handleQuery(activeLayerRecord, cswRecords[i], wfsOnlineResource, filterParameters, function() {
                 //decrement the counter
                 finishedLoadingCounter--;
-                activeLayerRecord.setLastFilterParameters(filterParameters);
+
                 //check if we can set the status to finished
                 if (finishedLoadingCounter <= 0) {
                 	activeLayerRecord.setIsLoading(false);
