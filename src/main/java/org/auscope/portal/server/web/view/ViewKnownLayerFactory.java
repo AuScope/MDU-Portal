@@ -78,6 +78,8 @@ public class ViewKnownLayerFactory {
         obj.put("proxyUrl", k.getProxyUrl());
         obj.put("proxyRecordCountUrl", k.getProxyRecordCountUrl());
         obj.put("iconUrl", k.getIconUrl());
+        obj.put("serviceEndpoints", k.getServiceEndpoints());
+        obj.put("includeEndpoints", k.includeEndpoints());
         obj.put("disableBboxFiltering", k.getDisableBboxFiltering());
         obj.put("relatedFeatureTypeNames", k.getRelatedFeatureTypeNames());
 

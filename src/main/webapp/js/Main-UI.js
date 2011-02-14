@@ -682,37 +682,51 @@ Ext.onReady(function() {
         for (var i = 0; i < cswRecords.length; i++) {
         	//Assumption - We will only have 1 WFS linked per CSW
         	var wfsOnlineResource = cswRecords[i].getFilteredOnlineResources('WFS')[0];
-
-            //Generate our filter parameters for this service (or use the override values if specified)
-            var filterParameters = { };
-            
-            if (overrideFilterParams) {
-                filterParameters = overrideFilterParams;
-            } else {
-                if (filterPanel.getLayout().activeItem != filterPanel.getComponent(0)) {
-                    filterParameters = filterPanel.getLayout().activeItem.getForm().getValues();
-                }
-                filterParameters.maxFeatures = MAX_FEATURES; // limit our feature request to 200 so we don't overwhelm the browser
-                filterParameters.bbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map)); // This line activates bbox support AUS-1597
-//                if (parentKnownLayer && parentKnownLayer.getDisableBboxFiltering()) {
-//                    filterParameters.bbox = null; //some WFS layer groupings may wish to disable bounding boxes
-//                }
-            }           
-            activeLayerRecord.setLastFilterParameters(filterParameters);    
-            
-        	//Generate our filter parameters for this service
-        	filterParameters.serviceUrl = wfsOnlineResource.url;
-        	filterParameters.typeName = wfsOnlineResource.name;           
         	
-            handleQuery(activeLayerRecord, cswRecords[i], wfsOnlineResource, filterParameters, function() {
-                //decrement the counter
-                finishedLoadingCounter--;
-
-                //check if we can set the status to finished
-                if (finishedLoadingCounter <= 0) {
-                	activeLayerRecord.setIsLoading(false);
-                }
-            });
+        	//Proceed with the query only if the resource url is contained in the list
+        	//of service endpoints for the known layer, or if the list is null.
+        	if(activeLayerRecord.getServiceEndpoints() == null  || 
+        			includeEndpoint(activeLayerRecord.getServiceEndpoints(),
+        					wfsOnlineResource.url, activeLayerRecord.includeEndpoints())) {
+	            //Generate our filter parameters for this service (or use the override values if specified)
+	            var filterParameters = { };
+	            
+	            if (overrideFilterParams) {
+	                filterParameters = overrideFilterParams;
+	            } else {
+	                if (filterPanel.getLayout().activeItem != filterPanel.getComponent(0)) {
+	                    filterParameters = filterPanel.getLayout().activeItem.getForm().getValues();
+	                }
+	                filterParameters.maxFeatures = MAX_FEATURES; // limit our feature request to 200 so we don't overwhelm the browser
+	                filterParameters.bbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map)); // This line activates bbox support AUS-1597
+	//                if (parentKnownLayer && parentKnownLayer.getDisableBboxFiltering()) {
+	//                    filterParameters.bbox = null; //some WFS layer groupings may wish to disable bounding boxes
+	//                }
+	            }           
+	            activeLayerRecord.setLastFilterParameters(filterParameters);    
+	            
+	        	//Generate our filter parameters for this service
+	        	filterParameters.serviceUrl = wfsOnlineResource.url;
+	        	filterParameters.typeName = wfsOnlineResource.name;           
+	        	
+	            handleQuery(activeLayerRecord, cswRecords[i], wfsOnlineResource, filterParameters, function() {
+	                //decrement the counter
+	                finishedLoadingCounter--;
+	
+	                //check if we can set the status to finished
+	                if (finishedLoadingCounter <= 0) {
+	                	activeLayerRecord.setIsLoading(false);
+	                }
+	            });
+        	}else { //If the endpoint will not be part of this layer just mark it as finished loading
+	            //decrement the counter
+	            finishedLoadingCounter--;
+	
+	            //check if we can set the status to finished
+	            if (finishedLoadingCounter <= 0) {
+	            	activeLayerRecord.setIsLoading(false);
+	            }
+	        }
         }
     };
 
@@ -1170,23 +1184,26 @@ Ext.onReady(function() {
 	                		for (var j = 0; j < wfsOnlineResources.length; j++) {
 	                			var proxyUrl = activeLayerRecord.getProxyUrl()!== null ? activeLayerRecord.getProxyUrl() : 'getAllFeatures.do';
 	                			var lastFilters = null;
-	                			var bbox = null;
+	                			var bbox = null;	                			
 	                			if(activeLayerRecord.getLastFilterParameters() !== null && activeLayerRecord.getLastFilterParameters() !== undefined){
 	                				bbox = activeLayerRecord.getLastFilterParameters().bbox;
 	                				lastFilters = activeLayerRecord.getLastFilterParameters();
 	                				lastFilters.maxFeatures = 0;
 	                			}                			
 	                			var boundingbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map));
+	                			
+	                			var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
 	                			if(bbox === null || bbox === undefined){
-	                				keys.push('serviceUrls');
-	                				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
-	                    			values.push(Ext.urlEncode(lastFilters, prefixUrl));
+	                				if(activeLayerRecord.getServiceEndpoints() == null || 
+		                					includeEndpoint(activeLayerRecord.getServiceEndpoints(), url, activeLayerRecord.includeEndpoints())) {
+		                				keys.push('serviceUrls');		                				
+		                    			values.push(Ext.urlEncode(lastFilters, prefixUrl));
+	                				}
 	                    			chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
 	                			}
 	                			else{
 	                				if(bbox === boundingbox){
 	                		    		keys.push('serviceUrls');
-	                					var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
 	                					values.push(Ext.urlEncode(lastFilters, prefixUrl));
 	                					chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
 	                		    	}
@@ -1197,12 +1214,10 @@ Ext.onReady(function() {
 	                		        			if (buttonId == 'yes') {
 	                		        				lastFilters.bbox = boundingbox;
 	                		        				keys.push('serviceUrls');
-	                		        				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
 	                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
 	                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
 	                		        			} else if (buttonId == 'no') {
 	                		        				keys.push('serviceUrls');
-	                		        				var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
 	                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
 	                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
 	                		        			}

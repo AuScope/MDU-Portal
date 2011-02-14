@@ -314,6 +314,21 @@ ActiveLayersRecord.prototype.getParentKnownLayer = function() {
 };
 
 /**
+ * Gets the list of service endpoints applicable to the layer
+ */
+ActiveLayersRecord.prototype.getServiceEndpoints = function() {
+	return this.internalRecord.get('serviceEndpoints');
+};
+
+/**
+ * Gets the flag indicating whether the listed service endpoints should be 
+ * included or excluded from the layer.
+ */
+ActiveLayersRecord.prototype.includeEndpoints = function() {
+	return this.internalRecord.get('includeEndpoints');
+};
+
+/**
  * Sets an instance of KnownLayerRecord or null
  * 
  * It represents the KnownLayer that 'owns' the CSWRecords of this active layer 

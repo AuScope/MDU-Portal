@@ -85,6 +85,8 @@ Ext.extend(ActiveLayersStore, Ext.data.Store, {
 			proxyRecordCountUrl : knownLayerRecord.getProxyRecordCountUrl(),
 			cswRecords	: linkedCSWRecords,
 			iconUrl		: knownLayerRecord.getIconUrl(),
+			serviceEndpoints: knownLayerRecord.getServiceEndpoints(),
+			includeEndpoints: knownLayerRecord.includeEndpoints(),
 			keyIconHtml	: '<img width="16" height="16" src="' + knownLayerRecord.getIconUrl() + '">',
 			isLoading	: false,
 			layerVisible: true,
