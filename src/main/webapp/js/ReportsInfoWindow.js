@@ -16,10 +16,17 @@ function ReportsInfoWindow(iMap, iOverlay, iCSWRecord) {
 ReportsInfoWindow.prototype = {
 	    
 	'show': function() {
+		var recordLink = this.cswRecord.getRecordInfoUrl();
+		var recordLinkName = "Link back to registry";
 		var sHtml = '<div style="padding-bottom:30px;white-space:pre-wrap;white-space:-moz-pre-wrap;' +
 			'white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:break-word;' +
 			'width:99%;max-height:300px;overflow:auto;">' + 
-			'<table border="1" cellspacing="1" width="100%" bgcolor="#EAF0F8">' + 
+			'<table border="1" cellspacing="1" width="100%" bgcolor="#EAF0F8">' +
+			"<tr><td>" +
+		     "<a href='" + recordLink + "' target='_blank'>" +
+		     recordLinkName +
+		     "</a>" +
+		     "</td></tr>"+
 			'<tr><td>' + 
 			this.cswRecord.getServiceName() +
 			'</td></tr>' +

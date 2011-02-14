@@ -135,6 +135,8 @@ CustomLayersGridPanel = function(id, title, description, cswRecordStore, addLaye
                     var theRow = this.getView().findRow(row);
                     var cswRecord = new CSWRecord(this.getStore().getAt(theRow.rowIndex));
                     
+                    var autoWidth = !Ext.isIE6 && !Ext.isIE7;
+                    
                     //This is for the 'record type' column
                     if (col.cellIndex == '2') {
                     	
@@ -146,7 +148,14 @@ CustomLayersGridPanel = function(id, title, description, cswRecordStore, addLaye
                             html: 'Click for detailed information about the web services this layer utilises',
                             anchor: 'bottom',
                             trackMouse: true,
-                            showDelay:60
+                            showDelay:60,
+                            autoHeight:true,
+                            autoWidth: autoWidth,
+                            listeners : {
+                                hide : function(component) {
+                                    component.destroy();
+                                }
+                            }
                         });
                     }
                     //this is the status icon column
@@ -161,7 +170,12 @@ CustomLayersGridPanel = function(id, title, description, cswRecordStore, addLaye
 	                            trackMouse: true,
 	                            showDelay:60,
 	                            autoHeight:true,
-	                            autoWidth: true
+	                            autoWidth: autoWidth,
+	                            listeners : {
+	                                hide : function(component) {
+	                                    component.destroy();
+	                                }
+	                            }
 	                        });
                     	}
                     }
