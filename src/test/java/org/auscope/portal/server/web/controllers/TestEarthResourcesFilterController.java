@@ -17,10 +17,10 @@ import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.auscope.portal.mineraloccurrence.MineralOccurrencesResponseHandler;
 import org.auscope.portal.server.util.GmlToKml;
+import org.auscope.portal.server.web.service.BoreholeService;
 import org.auscope.portal.server.web.service.CommodityService;
 import org.auscope.portal.server.web.service.HttpServiceCaller;
 import org.auscope.portal.server.web.service.MineralOccurrenceService;
-import org.auscope.portal.server.web.service.NvclService;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -40,8 +40,8 @@ public class TestEarthResourcesFilterController {
     private HttpServletRequest mockHttpRequest;
     private HttpServletResponse mockHttpResponse;
     private GmlToKml mockGmlToKml;
-    private NvclService mockNvclService;
     private CommodityService mockCommodityService;
+    private BoreholeService mockBoreholeService;
     private HttpSession mockHttpSession;
     private ServletContext mockServletContext;
     private HttpServiceCaller mockHttpServiceCaller;
@@ -57,7 +57,7 @@ public class TestEarthResourcesFilterController {
         this.mineralOccurrencesResponseHandler = context.mock(MineralOccurrencesResponseHandler.class);
         this.mineralOccurrenceService = context.mock(MineralOccurrenceService.class);
         this.mockGmlToKml = context.mock(GmlToKml.class);
-        this.mockNvclService = context.mock(NvclService.class);
+        this.mockBoreholeService = context.mock(BoreholeService.class);
         this.mockHttpRequest = context.mock(HttpServletRequest.class);
         this.mockHttpResponse = context.mock(HttpServletResponse.class);
         this.mockCommodityService = context.mock(CommodityService.class);
@@ -66,7 +66,7 @@ public class TestEarthResourcesFilterController {
         this.mockHttpServiceCaller = context.mock(HttpServiceCaller.class);
         this.httpMethodBase = context.mock(HttpMethodBase.class);
         this.mockHttpClient = context.mock(HttpClient.class);
-        this.earthResourcesFilterController = new EarthResourcesFilterController(this.mineralOccurrencesResponseHandler, this.mineralOccurrenceService,this.mockNvclService, this.mockGmlToKml, this.mockCommodityService, this.mockHttpServiceCaller);
+        this.earthResourcesFilterController = new EarthResourcesFilterController(this.mineralOccurrencesResponseHandler, this.mineralOccurrenceService,this.mockBoreholeService, this.mockGmlToKml, this.mockCommodityService, this.mockHttpServiceCaller);
     }
 
     private void testJSONResponse(String json, Boolean success, String gml, String kml) {

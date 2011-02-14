@@ -3,20 +3,21 @@ package org.auscope.portal.server.web.service;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.auscope.portal.mineraloccurrence.BoreholeFilter;
 import org.auscope.portal.server.domain.filter.FilterBoundingBox;
 import org.auscope.portal.server.domain.filter.IFilter;
 import org.auscope.portal.server.web.IWFSGetFeatureMethodMaker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 /**
- * A utility class which provides methods for querying nvcl service
+ * A utility class which provides methods for querying borehole service
  * 
  * @author Jarek Sanders
- * @version $Id$
+ * @version $Id: BoreholeService.java 1541 2011-01-25 06:35:15Z gup024 $
  *
  */
 @Service
-public class NvclService {
+public class BoreholeService {
 
     // -------------------------------------------------------------- Constants
     
@@ -28,12 +29,6 @@ public class NvclService {
     private IFilter filter;
 
     // ----------------------------------------------------------- Constructors
-    /*
-    public NvclService() {
-        this.httpServiceCaller = new HttpServiceCaller();
-        this.methodMaker = new WFSGetFeatureMethodMakerPOST();
-    } */
-    
     
     // ------------------------------------------ Attribute Setters and Getters    
     
@@ -51,9 +46,13 @@ public class NvclService {
     public void setFilter(IFilter filter) {
         this.filter = filter;
     }
+    
+    
 
     
     // --------------------------------------------------------- Public Methods    
+    
+    
     
     /**
      * Get all boreholes from a given service url and return the response
@@ -62,13 +61,13 @@ public class NvclService {
      * @return
      * @throws Exception
      */
-    public HttpMethodBase getAllBoreholes(String serviceURL, int maxFeatures, FilterBoundingBox bbox) throws Exception {
+    public HttpMethodBase getAllBoreholes(String serviceURL, String boreholeName, String custodian, String dateOfDrilling, int maxFeatures, FilterBoundingBox bbox) throws Exception {
         String filterString;
-        
+        BoreholeFilter nvclFilter = new BoreholeFilter(boreholeName, custodian, dateOfDrilling);
         if (bbox == null) {
-            filterString = filter.getFilterStringAllRecords();
+            filterString = nvclFilter.getFilterStringAllRecords();
         } else {
-            filterString = filter.getFilterStringBoundingBox(bbox);
+            filterString = nvclFilter.getFilterStringBoundingBox(bbox);
         }
         
         // Create a GetFeature request with an empty filter - get all

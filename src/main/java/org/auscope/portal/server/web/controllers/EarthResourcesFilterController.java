@@ -25,11 +25,11 @@ import org.auscope.portal.mineraloccurrence.MineralOccurrencesResponseHandler;
 import org.auscope.portal.server.domain.filter.FilterBoundingBox;
 import org.auscope.portal.server.util.GmlToKml;
 import org.auscope.portal.server.web.ErrorMessages;
+import org.auscope.portal.server.web.service.BoreholeService;
 import org.auscope.portal.server.web.service.CSWService;
 import org.auscope.portal.server.web.service.CommodityService;
 import org.auscope.portal.server.web.service.HttpServiceCaller;
 import org.auscope.portal.server.web.service.MineralOccurrenceService;
-import org.auscope.portal.server.web.service.NvclService;
 import org.auscope.portal.server.web.view.JSONModelAndView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -67,7 +67,7 @@ public class EarthResourcesFilterController {
 
     private MineralOccurrencesResponseHandler mineralOccurrencesResponseHandler;
     private MineralOccurrenceService mineralOccurrenceService;
-    private NvclService nvclService;
+    private BoreholeService boreholeService;
     private GmlToKml gmlToKml;
     private CommodityService commodityService;
     private HttpServiceCaller httpServiceCaller;
@@ -81,7 +81,7 @@ public class EarthResourcesFilterController {
     public EarthResourcesFilterController
         ( MineralOccurrencesResponseHandler mineralOccurrencesResponseHandler,
           MineralOccurrenceService mineralOccurrenceService,
-          NvclService nvclService,
+          BoreholeService boreholeService,
           GmlToKml gmlToKml,
           CommodityService commodityService,
           HttpServiceCaller httpServiceCaller
@@ -89,7 +89,7 @@ public class EarthResourcesFilterController {
 
         this.mineralOccurrencesResponseHandler = mineralOccurrencesResponseHandler;
         this.mineralOccurrenceService = mineralOccurrenceService;
-        this.nvclService = nvclService;
+        this.boreholeService = boreholeService;
         this.gmlToKml = gmlToKml;
         this.commodityService = commodityService;
         this.httpServiceCaller = httpServiceCaller;
@@ -352,7 +352,7 @@ public class EarthResourcesFilterController {
 
 
     /**
-     * Handles the NVCL filter queries.
+     * Handles the borehole filter queries.
      *
      * @param serviceUrl the url of the service to query
      * @param mineName   the name of the mine to query for
@@ -360,8 +360,13 @@ public class EarthResourcesFilterController {
      * @return a WFS response converted into KML
      * @throws Exception
      */
-    @RequestMapping("/doNvclFilter.do")
-    public ModelAndView doNvclFilter( @RequestParam("serviceUrl") String serviceUrl,
+
+
+    @RequestMapping("/doBoreholeFilter.do")
+    public ModelAndView doBoreholeFilter( @RequestParam("serviceUrl") String serviceUrl,
+    								  @RequestParam("boreholeName")     String boreholeName,
+    								  @RequestParam("custodian")        String custodian,
+    								  @RequestParam("dateOfDrilling")   String dateOfDrilling,
                                       @RequestParam(required=false, value="maxFeatures", defaultValue="0") int maxFeatures,
                                       @RequestParam(required=false, value="bbox") String bboxJson,
                                       HttpServletRequest request) throws Exception {
@@ -369,10 +374,8 @@ public class EarthResourcesFilterController {
         FilterBoundingBox bbox = FilterBoundingBox.attemptParseFromJSON(bboxJson);
 
         JSONArray requestInfo = new JSONArray();
-
-
         try {
-        	HttpMethodBase method = this.nvclService.getAllBoreholes(serviceUrl, maxFeatures, bbox);
+        	HttpMethodBase method = this.boreholeService.getAllBoreholes(serviceUrl, boreholeName, custodian, dateOfDrilling, maxFeatures, bbox);
             String gmlBlob = this.httpServiceCaller.getMethodResponseAsString(method, httpServiceCaller.getHttpClient());
 
             String kmlBlob = convertToKml(gmlBlob, request, serviceUrl);

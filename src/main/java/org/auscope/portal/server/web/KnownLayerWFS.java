@@ -14,6 +14,8 @@ public class KnownLayerWFS extends KnownLayer {
     private String proxyRecordCountUrl;
     private String iconUrl;
     private Point iconAnchor;
+    private String[] serviceEndpoints;
+    private boolean includeEndpoints;
     private Point infoWindowAnchor;
     private Dimension iconSize;
     private boolean disableBboxFiltering;
@@ -27,8 +29,8 @@ public class KnownLayerWFS extends KnownLayer {
      * @param proxyUrl The URL that filter requests should be made through
      * @param iconUrl The Icon that will be used to render this feature on the map 
      */
-    public KnownLayerWFS(String featureTypeName) {
-        this.id = "KnownLayerWFS-" + featureTypeName;
+    public KnownLayerWFS(String featureTypeName, String title) {
+        this.id = "KnownLayerWFS-" + featureTypeName + "-" + title.replace(" ", "_");;
         this.featureTypeName = featureTypeName;
     }
     
@@ -41,7 +43,7 @@ public class KnownLayerWFS extends KnownLayer {
      */
     public KnownLayerWFS(String featureTypeName, String title, 
             String description, String proxyUrl, String proxyRecordCountUrl, String iconUrl) {
-        this(featureTypeName);
+        this(featureTypeName, title);
         this.title = title;
         this.description = description;
         this.proxyUrl = proxyUrl;
@@ -65,8 +67,8 @@ public class KnownLayerWFS extends KnownLayer {
     public KnownLayerWFS(String featureTypeName, String title, 
             String description, String proxyUrl, String proxyRecordCountUrl, String iconUrl, Point iconAnchor,
             Point infoWindowAnchor, Dimension iconSize) {
-        this(featureTypeName, title, description, proxyUrl, proxyRecordCountUrl, iconUrl, iconAnchor, 
-             infoWindowAnchor, iconSize, false);
+        this(featureTypeName, title, description, proxyUrl, proxyRecordCountUrl, iconUrl,null, false,
+        	iconAnchor, infoWindowAnchor, iconSize, false);
     }    
     
     /**
@@ -77,27 +79,27 @@ public class KnownLayerWFS extends KnownLayer {
      * @param iconUrl The Icon that will be used to render this feature on the map 
      * @param iconAnchor  The pixel coordinate relative to the top left corner of 
      *  the icon image at which this icon is anchored to the map.
+     * @param serviceEndpoints A list of the end points that will either be included or
+     *  excluded from the WFS, depending on the value of includeEndpoints
+     * @param includeEndpoints A flag indicating whether the listed service end points
+     *  will be included or excluded from the WFS
      * @param infoWindowAnchor  The pixel coordinate relative to the top left corner of
      *  the icon image at which the info window is anchored to the map.
      * @param iconSize  The size of the icon in pixels
      * @param disableBboxFiltering if true, the GUI will be instructed NOT to use to bounding box filters for this WFS collection
      */
     public KnownLayerWFS(String featureTypeName, String title, 
-            String description, String proxyUrl, String proxyRecordCountUrl, String iconUrl, Point iconAnchor,
-            Point infoWindowAnchor, Dimension iconSize, boolean disableBboxFiltering) {
+            String description, String proxyUrl, String proxyRecordCountUrl, String iconUrl, String[] serviceEndpoints,
+            boolean includeEndpoints, Point iconAnchor, Point infoWindowAnchor, Dimension iconSize, boolean disableBboxFiltering) {
         this(featureTypeName, title, description, proxyUrl, proxyRecordCountUrl, iconUrl);
         this.iconAnchor = iconAnchor;
         this.infoWindowAnchor = infoWindowAnchor;
         this.iconSize = iconSize;
         this.disableBboxFiltering = disableBboxFiltering;
-    }  
-    
-    /*public KnownLayerWFS(String featureTypeName, String title, 
-            String description, String proxyUrl, int proxyRecordCountUrl, String iconUrl, Point iconAnchor,
-            Point infoWindowAnchor, Dimension iconSize, boolean disableBboxFiltering) {
-        this(featureTypeName, title, description, proxyUrl, iconUrl, iconAnchor, infoWindowAnchor, iconSize, disableBboxFiltering);
-        this.proxyRecordCountUrl = proxyRecordCountUrl;
-    } */ 
+        this.serviceEndpoints = serviceEndpoints;
+        this.includeEndpoints = includeEndpoints;
+        
+    } 
    
     public String getFeatureTypeName() {
         return featureTypeName;
@@ -120,6 +122,14 @@ public class KnownLayerWFS extends KnownLayer {
     }
     public String getProxyRecordCountUrl(){
     	return proxyRecordCountUrl;
+    }
+    
+    public String[] getServiceEndpoints() {
+        return serviceEndpoints;
+    }
+    
+    public boolean includeEndpoints() {
+    	return includeEndpoints;
     }
     
     
