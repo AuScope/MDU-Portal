@@ -171,6 +171,8 @@ KnownLayerGridPanel = function(id, title, description, knownFeatureTypeStore, cs
                     var theRow = this.getView().findRow(row);
                     var knownLayerRecord = new KnownLayerRecord(this.getStore().getAt(theRow.rowIndex));
                     
+                    var autoWidth = !Ext.isIE6 && !Ext.isIE7;
+                    
                     //This is for the 'record type' column
                     if (col.cellIndex == '2') {
                     	var cswRecords = knownLayerRecord.getLinkedCSWRecords(cswRecordStore);
@@ -188,7 +190,12 @@ KnownLayerGridPanel = function(id, title, description, knownFeatureTypeStore, cs
                             trackMouse: true,
                             showDelay:60,
                             autoHeight:true,
-                            autoWidth: true
+                            autoWidth: autoWidth,
+                            listeners : {
+                                hide : function(component) {
+                                    component.destroy();
+                                }
+                            }
                         });
                     }
                     //this is the status icon column
@@ -203,7 +210,12 @@ KnownLayerGridPanel = function(id, title, description, knownFeatureTypeStore, cs
                             trackMouse: true,
                             showDelay:60,
                             autoHeight:true,
-                            autoWidth: true
+                            autoWidth: autoWidth,
+                            listeners : {
+                                hide : function(component) {
+                                    component.destroy();
+                                }
+                            }
                         });
                     }
                 }

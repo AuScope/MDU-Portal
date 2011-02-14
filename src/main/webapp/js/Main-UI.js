@@ -698,7 +698,7 @@ Ext.onReady(function() {
 	                    filterParameters = filterPanel.getLayout().activeItem.getForm().getValues();
 	                }
 	                filterParameters.maxFeatures = MAX_FEATURES; // limit our feature request to 200 so we don't overwhelm the browser
-	                filterParameters.bbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map)); // This line activates bbox support AUS-1597
+	 //               filterParameters.bbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map)); // This line activates bbox support AUS-1597
 	//                if (parentKnownLayer && parentKnownLayer.getDisableBboxFiltering()) {
 	//                    filterParameters.bbox = null; //some WFS layer groupings may wish to disable bounding boxes
 	//                }
@@ -1184,7 +1184,8 @@ Ext.onReady(function() {
 	                		for (var j = 0; j < wfsOnlineResources.length; j++) {
 	                			var proxyUrl = activeLayerRecord.getProxyUrl()!== null ? activeLayerRecord.getProxyUrl() : 'getAllFeatures.do';
 	                			var lastFilters = null;
-	                			var bbox = null;	                			
+	                			var bbox = null;
+	                			var url = wfsOnlineResources[j].url;
 	                			if(activeLayerRecord.getLastFilterParameters() !== null && activeLayerRecord.getLastFilterParameters() !== undefined){
 	                				bbox = activeLayerRecord.getLastFilterParameters().bbox;
 	                				lastFilters = activeLayerRecord.getLastFilterParameters();
@@ -1193,42 +1194,43 @@ Ext.onReady(function() {
 	                			var boundingbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map));
 	                			
 	                			var prefixUrl = window.location.protocol + "//" + window.location.host + WEB_CONTEXT + "/" + proxyUrl + "?";
-	                			if(bbox === null || bbox === undefined){
-	                				if(activeLayerRecord.getServiceEndpoints() == null || 
-		                					includeEndpoint(activeLayerRecord.getServiceEndpoints(), url, activeLayerRecord.includeEndpoints())) {
-		                				keys.push('serviceUrls');		                				
-		                    			values.push(Ext.urlEncode(lastFilters, prefixUrl));
-	                				}
-	                    			chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+	                			if(activeLayerRecord.getServiceEndpoints() == null || 
+	                					includeEndpoint(activeLayerRecord.getServiceEndpoints(), url, activeLayerRecord.includeEndpoints())) {
+		                			if(bbox === null || bbox === undefined){
+		                				
+			                				keys.push('serviceUrls');		                				
+			                    			values.push(Ext.urlEncode(lastFilters, prefixUrl));
+			                    			chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+		                				}	                    			
+		                			
+		                			else{
+		                				if(bbox === boundingbox){
+		                		    		keys.push('serviceUrls');
+		                					values.push(Ext.urlEncode(lastFilters, prefixUrl));
+		                					chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+		                		    	}
+		                		    	else{
+		                					Ext.MessageBox.show({
+		                		        		buttons:{yes:'Download Current', no:'Download Previous'},
+		                		        		fn:function (buttonId) {
+		                		        			if (buttonId == 'yes') {
+		                		        				lastFilters.bbox = boundingbox;
+		                		        				keys.push('serviceUrls');
+		                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
+		                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+		                		        			} else if (buttonId == 'no') {
+		                		        				keys.push('serviceUrls');
+		                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
+		                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
+		                		        			}
+		                		        		},
+		                		        		modal:true,
+		                		        		msg:'Do you want to download data according to the previous bouding box or the current one?',
+		                		        		title:'Warning: Different bounding box'
+		                		        	});
+		                		    	}
+		                			}
 	                			}
-	                			else{
-	                				if(bbox === boundingbox){
-	                		    		keys.push('serviceUrls');
-	                					values.push(Ext.urlEncode(lastFilters, prefixUrl));
-	                					chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
-	                		    	}
-	                		    	else{
-	                					Ext.MessageBox.show({
-	                		        		buttons:{yes:'Download Current', no:'Download Previous'},
-	                		        		fn:function (buttonId) {
-	                		        			if (buttonId == 'yes') {
-	                		        				lastFilters.bbox = boundingbox;
-	                		        				keys.push('serviceUrls');
-	                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
-	                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
-	                		        			} else if (buttonId == 'no') {
-	                		        				keys.push('serviceUrls');
-	                		        				values.push(Ext.urlEncode(lastFilters, prefixUrl));
-	                		        				chkWfsCount(i , j, cswWfsRecordCount,WfsOnlineResourceCount, keys, values);
-	                		        			}
-	                		        		},
-	                		        		modal:true,
-	                		        		msg:'Do you want to download data according to the previous bouding box or the current one?',
-	                		        		title:'Warning: Different bounding box'
-	                		        	});
-	                		    	}
-	                			}
-	                			
 	                		}
 	                	}
 	                }

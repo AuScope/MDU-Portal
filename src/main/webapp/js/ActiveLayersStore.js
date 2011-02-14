@@ -14,9 +14,12 @@ ActiveLayersStore = function() {
 			    {   name	: 'cswRecords'      },	//[CSWRecord]: Objects that represent the content of this layer
 			    {	name	: 'proxyUrl'		},	//String: The raw URL that references the location the active layer should query 
 			    {   name	: 'proxyRecordCountUrl' },//number:To chk the total number of records
-			    {   name	: 'iconUrl'         },	//String: The raw URL pointing to an appropriate image icon (used for WFS) 
+			    {   name	: 'iconUrl'         },	//String: The raw URL pointing to an appropriate image icon (used for WFS)
+			    {   name    : 'serviceEndpoints'},  //String[]: The list of service endpoints that will be included/excluded from the layer
+			    {   name    : 'includeEndpoints'},  //boolean: The flag indicating whether the listed endpoints will be included or excluded
 			    {   name	: 'keyIconHtml'     },	//String: HTML that will appear under the 'key' column
 			    {   name	: 'isLoading' 		},	//boolean: Whether this layer is currently 'loading'
+			    {   name    : 'hasData'         },  //boolean: Whether this layer currently has data avaiable for download
 			    {   name	: 'layerVisible'    },	//boolean: Whether the layer is currently visible
 			    {   name	: 'opacity' 		},	//number: The layers opacity (if applicable) from [0, 1],
 			    {   name    : 'source'          }   //String: Will be either ['KnownLayer','CSWRecord']
@@ -59,8 +62,11 @@ Ext.extend(ActiveLayersStore, Ext.data.Store, {
 			proxyUrl	: null,
 			cswRecords	: [cswRecord],
 			iconUrl		: null,
+			serviceEndpoints : null,
+			includeEndpoints : false,
 			keyIconHtml	: keyIconHtml,
 			isLoading	: false,
+			hasData     : false,
 			layerVisible: true,
 			opacity		: 1,
 			source      : 'CSWRecord'
@@ -89,6 +95,7 @@ Ext.extend(ActiveLayersStore, Ext.data.Store, {
 			includeEndpoints: knownLayerRecord.includeEndpoints(),
 			keyIconHtml	: '<img width="16" height="16" src="' + knownLayerRecord.getIconUrl() + '">',
 			isLoading	: false,
+			hasData     : false,
 			layerVisible: true,
 			opacity		: 1,
 			source      : 'KnownLayer'
