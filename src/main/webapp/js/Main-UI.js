@@ -817,6 +817,13 @@ Ext.onReady(function() {
 			var handleDownloadCancelled = function() {
 				responseTooltip.addResponse(filterParameters.serviceUrl, "The request was cancelled by the user.");
 				activeLayerRecord.setLayerVisible(false);
+				var overlayManager = activeLayerRecord.getOverlayManager();
+	        	if (overlayManager) {
+	        		overlayManager.clearOverlays();
+	        	}
+
+	            filterPanel.getLayout().setActiveItem(0);
+	            filterButton.disable();
 				finishedLoadingHandler();
 			};
 			var url = activeLayerRecord.getProxyUrl();
@@ -1127,8 +1134,24 @@ Ext.onReady(function() {
             		}
             	}
             }
+          //this is to add Service Information Popup Window to Active Layers
+            else if (col.cellIndex == '2'){
+            	
+            	if (this.onlineResourcesPopup && this.onlineResourcesPopup.isVisible()) {
+        			this.onlineResourcesPopup.close();
+        		}
+            	var cswRecords = activeLayerRecord.getCSWRecords();
+            	if (activeLayerRecord.getSource() === 'KnownLayer'){            	 
+            		var knownLayerRecord = knownLayersStore.getKnownLayerById(activeLayerRecord.getId());
+            		this.onlineResourcesPopup = new CSWRecordDescriptionWindow(cswRecords, knownLayerRecord);
+            	}else{
+            		this.onlineResourcesPopup = new CSWRecordDescriptionWindow(cswRecords);
+            	}
+        		this.onlineResourcesPopup.show(e.getTarget());
+        		
+            }
             //this is for clicking the loading icon
-            else if (col.cellIndex == '2') {
+            else if (col.cellIndex == '3') {
 
 	            //to get the value of variable used in url
             	var gup = function ( name ) {
