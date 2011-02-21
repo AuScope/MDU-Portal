@@ -1314,7 +1314,7 @@ Ext.onReady(function() {
 		    				}
 		                }
 	
-	                	openWindowWithPost("downloadWMSAsZip.do?", 'WMS_Layer_Download_'+new Date().getTime(), keys, values);
+	                	openWindowWithPost("downloadDataAsZip.do?", 'WMS_Layer_Download', keys, values);
 	                	return;
 	                }
 	            }
@@ -1348,6 +1348,7 @@ Ext.onReady(function() {
             for (var i = 0; i < keys.length; i++) {
                 url += '&' + keys[i] + '=' + escape(values[i]);
             }
+            url += '&filename=' + escape(name);
         }
         downloadFile(url);
     };

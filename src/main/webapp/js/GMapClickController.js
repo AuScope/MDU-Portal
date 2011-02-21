@@ -106,7 +106,10 @@ var gMapClickController = function(map, overlay, latlng, overlayLatlng, activeLa
 
 
 	    	if (overlay instanceof GMarker) {
-	            if (wfsTypeName === "gsml:Borehole") {
+	    		if (wfsTypeName === "gsml:Borehole" && wfsUrl.indexOf("pressuredb") >= 0) {
+	                var infoWindow = new PressureDbInfoWindow(map,overlay, wfsUrl);
+	                infoWindow.show();
+	            } else if (wfsTypeName === "gsml:Borehole") {
 	                var infoWindow = new NvclInfoWindow(map,overlay, wfsUrl);
 	                infoWindow.show();
 	            }

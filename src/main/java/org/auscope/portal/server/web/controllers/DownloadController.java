@@ -131,13 +131,17 @@ public class DownloadController {
      * @param response
      * @throws Exception
      */
-    @RequestMapping("/downloadWMSAsZip.do")
-    public void downloadWMSAsZip( @RequestParam("serviceUrls") final String[] serviceUrls,
+   
+    @RequestMapping("/downloadDataAsZip.do")
+    public void downloadDataAsZip( @RequestParam("serviceUrls") final String[] serviceUrls,
+    				              @RequestParam("filename") final String filename,
                                   HttpServletResponse response) throws Exception {
 
+    	String filenameStr = filename == null || filename.length() < 0 ? "DataDownload" : filename;
+    	
         //set the content type for zip files
         response.setContentType("application/zip");
-        response.setHeader("Content-Disposition","inline; filename=PNGDownload.zip;");
+        response.setHeader("Content-Disposition","inline; filename=" + filenameStr + ".zip;");
 
         //create the output stream
         ZipOutputStream zout = new ZipOutputStream(response.getOutputStream());
