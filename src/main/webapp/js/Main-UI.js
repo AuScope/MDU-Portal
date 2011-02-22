@@ -1196,9 +1196,13 @@ Ext.onReady(function() {
 	            	var keys = [];
 	                var values = [];
 	
+	                var wfsRecords = activeLayerRecord.getCSWRecordsWithType('WFS');
+	                var wcsRecords = activeLayerRecord.getCSWRecordsWithType('WCS');
+	                var wmsRecords = activeLayerRecord.getCSWRecordsWithType('WMS');
+	                
 	                //We simplify things by treating the record list as a single type of WFS, WCS or WMS
 	                //So lets find the first record with a type we can choose (Prioritise WFS -> WCS -> WMS)
-	                var cswRecords = activeLayerRecord.getCSWRecordsWithType('WFS');
+	                var cswRecords = wfsRecords;
 	                if (cswRecords.length !== 0) {
 	                	for (var i = 0; i < cswRecords.length; i++) {
 	                		var wfsOnlineResources = cswRecords[i].getFilteredOnlineResources('WFS');
@@ -1260,8 +1264,8 @@ Ext.onReady(function() {
 	                	}
 	                }
 	
-	                cswRecords = activeLayerRecord.getCSWRecordsWithType('WCS');
-	                if (cswRecords.length !== 0) {
+	                cswRecords = wcsRecords;
+	                if (wfsRecords.length === 0 && cswRecords.length !== 0) {
 	                	//Assumption - we only expect 1 WCS
 	            		var wcsOnlineResource = cswRecords[0].getFilteredOnlineResources('WCS')[0];
 	            		showWCSDownload(wcsOnlineResource.url, wcsOnlineResource.name);
@@ -1269,8 +1273,8 @@ Ext.onReady(function() {
 	                }
 	
 	                //For WMS we download every WMS
-	                cswRecords = activeLayerRecord.getCSWRecordsWithType('WMS');
-	                if (cswRecords.length !== 0) {
+	                cswRecords = wmsRecords;
+	                if (wfsRecords.length === 0 && wcsRecords.length === 0 && cswRecords.length !== 0) {
 	                	for (var i = 0; i < cswRecords.length; i++) {
 		                	var wmsOnlineResources = cswRecords[i].getFilteredOnlineResources('WMS');
 		    				for (var j = 0; j < wmsOnlineResources.length; j++) {
