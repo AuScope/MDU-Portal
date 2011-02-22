@@ -1212,6 +1212,8 @@ Ext.onReady(function() {
 	                			if(activeLayerRecord.getLastFilterParameters() !== null && activeLayerRecord.getLastFilterParameters() !== undefined){
 	                				bbox = activeLayerRecord.getLastFilterParameters().bbox;
 	                				lastFilters = activeLayerRecord.getLastFilterParameters();
+	                				lastFilters.serviceUrl = wfsOnlineResources[j].url;
+	                				lastFilters.typeName = wfsOnlineResources[j].name;
 	                				lastFilters.maxFeatures = 0;
 	                			}                			
 	                			var boundingbox = Ext.util.JSON.encode(fetchVisibleMapBounds(map));
