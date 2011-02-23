@@ -14,68 +14,64 @@
 	<xsl:param name="serviceURL"/>
 
 	<!-- MATCH ROOT FEATURECOLLECTION -->
-	<!-- ================================================================= -->
-	<xsl:template match="wfs:FeatureCollection">
+    <!-- ================================================================= -->
+    <xsl:template match="wfs:FeatureCollection">
 
-		<!--<kml xmlns="http://www.opengis.net/kml/2.2">-->
-		<kml>
-			<Document>
-				<!-- STANDARD NAME AND DESCRIPTION FOR CONVERTED FILE -->
-				<name>
-					<xsl:text>GML Links to KML</xsl:text>
-				</name>
+        <!--<kml xmlns="http://www.opengis.net/kml/2.2"> -->
+        <kml>
+            <Document>
+                <!-- STANDARD NAME AND DESCRIPTION FOR CONVERTED FILE -->
+                <name>
+                    <xsl:text>GML Links to KML</xsl:text>
+                </name>
+                <description>
+                    <xsl:text>GeoSciML data converted to KML</xsl:text>
+                </description>
+                <xsl:apply-templates select="gml:featureMembers/* | gml:featureMember/*" />
+            </Document>
+        </kml>
+    </xsl:template>
 
-				<description>
-					<xsl:text>GeoSciML data converted to KML</xsl:text>
-				</description>
+    <xsl:template match="gml:featureMember/er:MiningFeatureOccurrence | gml:featureMembers/er:MiningFeatureOccurrence">
+        <xsl:variable name="coordinates">
+            <xsl:value-of select="./er:location/gml:Point/gml:pos" />
+        </xsl:variable>
 
-				<xsl:apply-templates select="gml:featureMembers/* | gml:featureMember/*"/>
-			</Document>
-		</kml>
-	</xsl:template>
+        <xsl:variable name="mineName">
+            <xsl:value-of select="./er:specification/er:Mine/er:mineName/er:MineName[./er:isPreferred = true()]/er:mineName/text()" />
+        </xsl:variable>
 
-	<xsl:template
-		match="gml:featureMember/er:MiningFeatureOccurrence | gml:featureMembers/er:MiningFeatureOccurrence">
-		<xsl:variable name="coordinates">
-			<xsl:value-of select="./er:location/gml:Point/gml:pos"/>
-		</xsl:variable>
+        <xsl:variable name="mineNameHrefLink">
+            <xsl:call-template name="createHrefLink">
+                <xsl:with-param name="thisGmlName" select="./er:specification/er:Mine/gml:name[@codeSpace='http://www.ietf.org/rfc/rfc2616']" />
+                <xsl:with-param name="specification" select="./er:specification/er:Mine/gml:name[@codeSpace='http://www.ietf.org/rfc/rfc2616']" />
+                <xsl:with-param name="candidate1" select="''" />
+                <xsl:with-param name="candidate2">
+                    <xsl:value-of select="$serviceURL" /><![CDATA[service=WFS&version=1.1.0&request=GetFeature&typename=er:Mine&featureid=]]><xsl:value-of select="./er:specification./er:Mine/@gml:id" />
+                </xsl:with-param>
+            </xsl:call-template>
+        </xsl:variable>
 
-		<xsl:variable name="mineName">
-			<xsl:value-of
-				select="./er:specification/er:Mine/er:mineName/er:MineName[./er:isPreferred = true()]/er:mineName/text()"
-			/>
-		</xsl:variable>
+        <xsl:if test="$coordinates">
+            <Placemark>
+                <name>
+                    <xsl:value-of select="$mineName" />
+                </name>
+                <description>
+                    <xsl:call-template name="start-table"></xsl:call-template>
+                    <![CDATA[<tr><td>Name</td><td>]]><xsl:call-template name="make-wfspopup-url">
+                        <xsl:with-param name="friendly-name" select="./er:specification/er:Mine/gml:name[@codeSpace='http://www.ietf.org/rfc/rfc2616']" />
+                        <xsl:with-param name="real-url" select="$mineNameHrefLink" />
+                    </xsl:call-template><![CDATA[</td></tr>]]>
+                    <![CDATA[<tr><td>Preferred Name</td><td>]]><xsl:value-of select="$mineName" /><![CDATA[</td></tr>]]>
+                    <![CDATA[<tr><td>Location</td><td>]]><xsl:value-of select="$coordinates" /><![CDATA[</td></tr>]]>
+                    <![CDATA[<tr><td>Status</td><td>]]><xsl:value-of select="./er:specification/er:Mine/er:status" /><![CDATA[</td></tr>]]>
+                    <![CDATA[</table></div>]]></description>
 
-		<xsl:variable name="mineNameHrefLink">
-			<xsl:call-template name="createHrefLink">
-				<xsl:with-param name="thisGmlName"
-					select="./er:specification/er:Mine/gml:name[@codeSpace='http://www.ietf.org/rfc/rfc2616']"/>
-				<xsl:with-param name="specification"
-					select="./er:specification/er:Mine/gml:name[@codeSpace='http://www.ietf.org/rfc/rfc2616']"/>
-				<xsl:with-param name="candidate1" select="''"/>
-				<xsl:with-param name="candidate2">
-					<xsl:value-of select="$serviceURL"
-						/><![CDATA[service=WFS&version=1.1.0&request=GetFeature&typename=er:Mine&featureid=]]><xsl:value-of
-						select="./er:specification./er:Mine/@gml:id"/></xsl:with-param>
-			</xsl:call-template>
-		</xsl:variable>
-
-		<xsl:if test="$coordinates">
-			<Placemark>
-				<name>
-					<xsl:value-of select="$mineName"/>
-				</name>
-				<description><![CDATA[<table border="1" cellspacing="1" cellpadding="2" width="100%" bgcolor="#EAF0F8">
-               <tr><td>Name</td><td><a href="#" onclick="var w=window.open(']]><xsl:value-of select="'wfsFeaturePopup.do?url='"/><xsl:value-of select="$mineNameHrefLink"/><![CDATA[','AboutWin','toolbar=no, menubar=no,location=no,resizable=yes,scrollbars=yes,statusbar=no,height=450,width=850');w.focus();return false;">]]><xsl:value-of select="./er:specification/er:Mine/gml:name[@codeSpace='http://www.ietf.org/rfc/rfc2616']"/><![CDATA[</a>]]>
-					<![CDATA[</td></tr><tr><td>Preferred Name</td><td>]]><xsl:value-of select="$mineName"/>
-					<![CDATA[</td></tr><tr><td>Location</td><td>]]><xsl:value-of select="$coordinates"/>
-					<![CDATA[</td></tr><tr><td>Status</td><td>]]><xsl:value-of select="./er:specification/er:Mine/er:status"/>
-					<![CDATA[</td></tr></table>]]></description>
-
-				<xsl:apply-templates select="./descendant::gml:Point"/>
-			</Placemark>
-		</xsl:if>
-	</xsl:template>
+                <xsl:apply-templates select="./descendant::gml:Point" />
+            </Placemark>
+        </xsl:if>
+    </xsl:template>
 
 	<!-- ================================================================= -->
 	<xsl:template match="gsml:shape">
@@ -385,4 +381,38 @@
 		</xsl:for-each>
 
 	</xsl:template>
+    
+    <!-- ================================================================= -->
+    <!-- This function creates a same window popup link -->
+    <!-- PARAM: friendly-name -->
+    <!-- PARAM: real-url -->
+    <!-- Returns something like this <a href="#" onclick="var w=window.open('{real-url}','AboutWin','toolbar=no, menubar=no,location=no,resizable=yes,scrollbars=yes,statusbar=no,height=450,width=820');w.focus();return
+        false;">friendly-name</a> -->
+    <!-- ================================================================= -->
+    <xsl:template name="make-popup-url">
+        <xsl:param name="friendly-name" />
+        <xsl:param name="real-url" />
+      <![CDATA[<a href="#" onclick="var w=window.open(']]><xsl:value-of select="$real-url" /><![CDATA[','AboutWin','toolbar=no, menubar=no,location=no,resizable=yes,scrollbars=yes,statusbar=no,height=450,width=820');w.focus();return false;">]]><xsl:value-of
+        select="$friendly-name" /><![CDATA[</a>]]></xsl:template>
+
+
+
+    <!-- ================================================================= -->
+    <!-- This function creates a same window popup link -->
+    <!-- PARAM: friendly-name -->
+    <!-- PARAM: real-url -->
+    <!-- Returns something like this <a href="#" onclick="var w=window.open('wfsFeaturePopup.do?url={real-url}','AboutWin','toolbar=no, menubar=no,location=no,resizable=yes,scrollbars=yes,statusbar=no,height=450,width=820');w.focus();return
+        false;">friendly-name</a> -->
+    <!-- ================================================================= -->
+    <xsl:template name="make-wfspopup-url">
+        <xsl:param name="friendly-name" />
+        <xsl:param name="real-url" />
+      <![CDATA[<a href="#" onclick="var w=window.open('wfsFeaturePopup.do?url=]]><xsl:value-of select="$real-url" /><![CDATA[','AboutWin','toolbar=no, menubar=no,location=no,resizable=yes,scrollbars=yes,statusbar=no,height=450,width=820');w.focus();return false;">]]><xsl:value-of
+        select="$friendly-name" /><![CDATA[</a>]]></xsl:template>
+
+    <!-- ================================================================= -->
+    <!-- This function creates the generic table cdata header -->
+    <!-- Returns something like this <![CDATA[<table border="1" cellspacing="1" cellpadding="2" width="100%" bgcolor="#EAF0F8"> -->
+    <xsl:template name="start-table"><![CDATA[<div style='min-width: 40px; max-width:650px; min-height: 40px; max-height: 350px; overflow: auto;"'><table border="1" cellpadding="4" class="auscopeTable">]]>
+    </xsl:template>
 </xsl:stylesheet>

@@ -49,19 +49,6 @@ GeotransectsInfoWindow.prototype = {
 
         this.mask.show();
 
-//        this.tabsArray[0] = new GInfoWindowTab(this.TAB_1,
-//				"<div style='min-width:400; min-height:300;'>" +
-//				"<table border=\"1\" cellspacing=\"1\" width=\"100%\" bgcolor=\"#EAF0F8\">" +
-//				"<tr>" +
-//				//"<td>" + this.testdes + "</td>" +
-//				"<td><pre style=\"white-space:pre-wrap;white-space:-moz-pre-wrap;" +
-//						"white-space:-pre-wrap;white-space:-o-pre-wrap;word-wrap:break-word;" +
-//						"width:99%;overflow:auto;\">" +
-//				this.description +
-//				"</pre></td></tr>" +
-//				"</table>" +
-//			    "</div>");
-
 
 	    // Hack to find the line's descrition from CSW
 		var linecsw = cswRecordStore.getCSWRecordsByKeywords([this.lineId]);

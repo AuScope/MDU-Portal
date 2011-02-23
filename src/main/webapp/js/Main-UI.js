@@ -350,7 +350,7 @@ Ext.onReady(function() {
         },
         items: [
             {
-                html: '<p style="margin:15px;padding:15px;border:1px dotted #999;color:#555;background: #f9f9f9;"> Filter options will be shown here for special services.</p>'
+            	html: '<p id="filterpanelbox"> Filter options will be shown here for special services.</p>'
             }
         ],
         bbar: ['->', filterButton]

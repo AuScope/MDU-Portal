@@ -221,7 +221,7 @@ YilgarnGeoInfoWindow.prototype =  {
 			htmlFragment += '<div style="';
 			htmlFragment += 'width: expression(!document.body ? &quot;auto&quot; : (document.body.clientWidth > 599 ? &quot;600px&quot; : &quot;auto&quot;) );';
 			htmlFragment += 'height: expression( this.scrollHeight > 549 ? &quot;550px&quot; : &quot;auto&quot; );';
-			htmlFragment += 'overflow: scroll;">';
+			htmlFragment += 'overflow: auto;">';
 		} else {
 			htmlFragment += '<div style="max-width: 600px; max-height: 550px; overflow: hidden;">';
 		}
