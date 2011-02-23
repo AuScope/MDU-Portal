@@ -101,7 +101,7 @@ KnownLayerGridPanel = function(id, title, description, knownFeatureTypeStore, cs
         }],
         
         tbar: [
-               'Search: ', ' ',
+               '<span qtip="Quickly find layers by typing the name here">Search: </span>', ' ',
                new Ext.ux.form.ClientSearchField({
                    store: knownFeatureTypeStore,
                    width:200,

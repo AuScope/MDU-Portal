@@ -71,6 +71,19 @@ CustomLayersGridPanel = function(id, title, description, cswRecordStore, addLaye
         tbar: [
             '<span style="color:#15428B; font-weight:bold">Enter WMS Url: </span>',
             ' ',
+            {
+            	xtype:'button',
+            	text:'<font color=#ff0000><b>?</b> </font>',
+            	qtip: 'You will need to enter the fully qualified URL of a WMS. Any layers that can be projected in EPSG:4326 will then be made available for display.',
+        	   	handler: function(){
+            		Ext.Msg.show({
+            			title:'Hint',
+            			msg: 'You will need to enter the fully qualified URL of a WMS. Any layers that can be projected in EPSG:4326 will then be made available for display.',
+            			buttons: Ext.Msg.OK
+            		});
+            	}
+
+            },
             new Ext.ux.form.SearchTwinTriggerField({
                 store: cswRecordStore,
                 width:260,

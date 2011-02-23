@@ -113,22 +113,23 @@ CSWRecordGridPanel = function(id, title, description, cswRecordStore, addLayerHa
             deferEmptyText:false
         }),
         tbar: [
-               'Search: ', ' ',
+               '<span qtip="Quickly find layers by typing the name here">Search: </span>', ' ',
                new Ext.ux.form.ClientSearchField({
                    store: dsCopy,
                    width:200,
                    id: searchPanelId,
                    fieldName:'serviceName'
-               }), {
-            	   	xtype:'button',
-            	   	text:'Visible',
+               }), 
+               new Ext.Button({
+                   text     :'Visible',
+                   tooltip  :'Display only layers in present view window',
             	   	handler:function() {
             	   		var searchPanel = Ext.getCmp(searchPanelId);
             	   		searchPanel.runCustomFilter('<visible layers>', function(rec){
             	   			return visibleFilterHandler(new CSWRecord(rec));
             	   		});
                		}
-               }
+               })
            ],
         listeners: {
         	cellclick : function (grid, rowIndex, colIndex, e) {

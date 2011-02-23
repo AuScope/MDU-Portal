@@ -624,8 +624,8 @@ Ext.onReady(function() {
     		//Add our WMS tiles (if any)
             for (var j = 0; j < wmsOnlineResources.length; j++) {
             	var tileLayer = new GWMSTileLayer(map, new GCopyrightCollection(""), 1, 17);
-                tileLayer.baseURL = wmsOnlineResources[i].url;
-                tileLayer.layers = wmsOnlineResources[i].name;
+                tileLayer.baseURL = wmsOnlineResources[j].url;
+                tileLayer.layers = wmsOnlineResources[j].name;
                 tileLayer.opacity = activeLayerRecord.getOpacity();
 
                 overlayManager.addOverlay(new GTileLayerOverlay(tileLayer));
@@ -728,6 +728,19 @@ Ext.onReady(function() {
 	            }
 	        }
         }
+    };
+    
+    /**
+     * determines whether or not a particular endpoint should be included when loading
+     * a layer
+     */
+    var includeEndpoint = function(endpoints, endpoint, includeEndpoints) { 	
+    	for(var i = 0; i < endpoints.length; i++) {
+    		if(endpoints[i].indexOf(endpoint) >= 0) {
+    			return includeEndpoints;
+    		}
+    	}
+    	return !includeEndpoints;
     };
 
     /**
@@ -1103,7 +1116,7 @@ Ext.onReady(function() {
 			            		titleTypes += wmsOnlineResources[j].name;
 
 			            		html += '<a target="_blank" href="' + url + '">';
-			            		html += '<img alt="Loading legend..." src="' + url + '"/>';
+			            		html += '<img onerror="this.alt=\'There was an error loading this legend. Click here to try again in a new window or contact the data supplier.\'" alt="Loading legend..." src="' + url + '"/>';
 			            		html += '</a>';
 			            		html += '<br/>';
             				}
