@@ -232,10 +232,15 @@ var gMapClickController = function(map, overlay, latlng, overlayLatlng, activeLa
     	//We will need to iterate over every WMS to see if they indicate a click event
         for (var i = 0; i < activeLayersStore.getCount(); i++) {
 	    	var alr = new ActiveLayersRecord(activeLayersPanel.getStore().getAt(i));
-
+	    	
 	        if (!alr.getLayerVisible()) {
 	        	continue;
-	        }        
+	        }
+	        
+	        wcsCSWRecords = alr.getCSWRecordsWithType('WCS');
+	        if (wcsCSWRecords !== null && wcsCSWRecords !== undefined){
+	        	continue;
+	        }
 
 	        //each linked WMS record must be tested
 	        var wmsCSWRecords = alr.getCSWRecordsWithType('WMS');
