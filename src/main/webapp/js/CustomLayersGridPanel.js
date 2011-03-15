@@ -86,7 +86,7 @@ CustomLayersGridPanel = function(id, title, description, cswRecordStore, addLaye
             },
             new Ext.ux.form.SearchTwinTriggerField({
                 store: cswRecordStore,
-                width:260,
+                width:245,
                 name : 'STTField',
                 emptyText : 'http://'
             })
