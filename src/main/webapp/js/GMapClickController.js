@@ -237,7 +237,7 @@ var gMapClickController = function(map, overlay, latlng, overlayLatlng, activeLa
 	        	continue;
 	        }
 	        
-	        wcsCSWRecords = alr.getCSWRecordsWithType('WCS');
+	        var wcsCSWRecords = alr.getCSWRecordsWithType('WCS');
 	        if (wcsCSWRecords !== null && wcsCSWRecords !== undefined){
 	        	continue;
 	        }
